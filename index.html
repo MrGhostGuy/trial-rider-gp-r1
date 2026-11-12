@@ -31,7 +31,7 @@
   #bBrake { left:8px; bottom:10px; }
   #bMenu { right:6px; top:30px; width:30px; height:30px; font-size:13px; border-radius:50%; }
   /* ---------- Screens ---------- */
-  .screen { position:absolute; inset:0; display:none; flex-direction:column; z-index:5;
+  .screen { position:absolute; inset:0; display:none; flex-direction:column; z-index:5; overflow-y:auto;
             background:linear-gradient(180deg, rgba(16,20,42,.93), rgba(24,18,44,.96)); padding:10px 10px 8px; }
   .screen.show { display:flex; }
   .logo { text-align:center; margin:0 0 6px; }
@@ -52,7 +52,8 @@
   .sbtn.sel { border-color:#FE5000; background:rgba(254,80,0,.18); }
   .sbtn.primary { background:#FE5000; border-color:#FE5000; }
   .secttl { font-size:10px; letter-spacing:2px; color:#ffb27a; font-weight:800; margin:4px 0 4px; }
-  .swrow { display:flex; gap:6px; margin-bottom:4px; }
+  .swrow { display:flex; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .sw.locked { font-size:10px; display:flex; align-items:center; justify-content:center; border-width:2px; }
   .sw { width:30px; height:30px; border-radius:8px; border:3px solid rgba(255,255,255,.18); cursor:pointer; }
   .sw.sel { border-color:#fff; transform:scale(1.08); }
   .opt { display:flex; gap:5px; }
@@ -70,7 +71,7 @@
   <canvas id="cv" width="480" height="564"></canvas>
   <div id="hud">
     <div><span class="lab" id="hLabL">TIME</span><span class="val" id="hTime">0.00</span></div>
-    <div style="text-align:center"><span class="lab" id="hName">TRIAL RIDER GP</span><span class="val" id="hCp">START</span></div>
+    <div style="text-align:center"><span class="lab" id="hName">TRIAL RIDER GP</span><span class="val" id="hCp">START</span><div id="hPace" style="font-size:9px;font-weight:800;letter-spacing:1px"></div></div>
     <div style="text-align:right"><span class="lab" id="hLabR">FAULTS</span><span class="val" id="hFaults">0</span></div>
   </div>
   <div id="msg"></div>
@@ -80,10 +81,10 @@
   <div class="tbtn" id="bMenu">⏸</div>
 
   <div class="screen show" id="scrTitle">
-    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION</div></div>
-    <button class="mi sel" data-act="career">🏁 CAREER<small>3 tracks · medals · unlocks</small></button>
+    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V4</div></div>
+    <button class="mi sel" data-act="career">🏁 CAREER<small>4 tracks · medals · unlocks · ghost racing</small></button>
     <button class="mi" data-act="skills">🎯 SKILL GAMES<small>Long Jump · Flip Frenzy · Hill Climb</small></button>
-    <button class="mi" data-act="garage">🎨 GARAGE<small>Bike &amp; rider colours</small></button>
+    <button class="mi" data-act="garage">🎨 GARAGE<small>Colours · crates · trails</small></button>
     <button class="mi" data-act="settings">⚙️ SETTINGS<small>Lean sensitivity · sound</small></button>
     <button class="mi" data-act="help">❓ HOW TO RIDE<small>Wheel = lean · side button = restart</small></button>
   </div>
@@ -103,13 +104,21 @@
   </div>
 
   <div class="screen" id="scrGarage">
+    <div class="secttl">BOLTS ⚙ <span id="boltCount">30</span> — EARNED FROM MEDALS</div>
+    <button class="mi" data-act="crate">🎁 OPEN A COSMETIC CRATE<small>Costs ⚙40 · random cosmetic, COMMON to LEGENDARY</small></button>
+    <div class="help" id="crateMsg" style="min-height:15px"></div>
+    <div class="help" id="pityHint" style="font-size:9.5px;color:#9fb4c8"></div>
     <div class="secttl">BIKE FRAME</div>
     <div class="swrow" id="swFrame"></div>
     <div class="secttl">RIDER SUIT</div>
     <div class="swrow" id="swRider"></div>
     <div class="secttl">HELMET</div>
     <div class="swrow" id="swHelm"></div>
-    <div class="help" style="margin-top:6px">Colours save automatically and show on every track.</div>
+    <div class="secttl">WHEEL RIMS</div>
+    <div class="swrow" id="swWheel"></div>
+    <div class="secttl">TRAIL</div>
+    <div class="swrow" id="swTrail"></div>
+    <div class="help" style="margin-top:6px">Locked items (coloured border) hide in crates. Duplicates refund ⚙10. Everything saves automatically.</div>
     <div class="backrow"><button class="sbtn" data-act="title">◀ BACK</button></div>
   </div>
 
@@ -140,7 +149,11 @@
       <b>Side button</b> — quick restart to the start of the track.<br>
       <b>GAS / BRAKE</b> — the two on-screen pedals. In the air, GAS pitches you back and BRAKE pitches you forward.<br>
       <b>Faults</b> — land on your head and you're back at the last checkpoint, clock still running. Each fault adds <b>+5s</b> to your medal time.<br>
-      <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, Esc pause.<br>
+      <b>Bunny hop</b> — flick lean back then forward fast, double-tap GAS, or press K. Clears logs, pipes and gaps.<br>
+      <b>Wheelie</b> — hold lean back on the gas. <b>Pivot turn</b> — brake + lean with the front wheel planted.<br>
+      <b>Bolts &amp; crates</b> — medals pay bolts (⚙). Spend ⚙40 on a crate in the Garage for random cosmetics; EPIC+ is guaranteed within 12 opens.<br>
+      <b>Ghost</b> — your best medal run races beside you as a translucent ghost (Settings).<br>
+      <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, C checkpoint restart, K hop, Esc pause.<br>
       Tip: ease off the gas before a drop, and lean back early on climbs — momentum is everything.
     </div>
     <div class="backrow"><button class="sbtn" data-act="title">◀ BACK</button></div>
@@ -150,6 +163,7 @@
     <div class="secttl">PAUSED</div>
     <button class="mi sel" data-act="resume">▶ RESUME</button>
     <button class="mi" data-act="restart">↺ RESTART TRACK</button>
+    <button class="mi" data-act="cp">⏮ RESTART AT CHECKPOINT</button>
     <button class="mi" data-act="settingsFromPause">⚙️ SETTINGS</button>
     <button class="mi" data-act="quit">🏠 QUIT TO TITLE</button>
   </div>
@@ -164,8 +178,9 @@
   </div>
 </div>
 <script>
+
 'use strict';
-/* ================= Trial Rider GP — R1 edition v3 =================
+/* ================= Trial Rider GP — R1 edition v4 =================
    Trials-style overhaul: position-based two-wheel physics (240 Hz),
    scroll-wheel lean with sensitivity, side-button full restart,
    dynamic obstacles (seesaws, loose barrels, bounce tyres), 3 career
@@ -179,11 +194,26 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
-const SETTINGS = Object.assign({ sens: 1, sound: 1 }, store.get('trgp3_settings', {}));
-const PROGRESS = Object.assign({ bests: {}, medals: {}, finished: {}, jump: 0, flip: 0, climb: 0 },
-                               store.get('trgp3_progress', {}));
-const GARAGE = Object.assign({ frame: '#FE5000', rider: '#39406b', helm: '#FE5000' }, store.get('trgp3_garage', {}));
-function saveAll() { store.set('trgp3_settings', SETTINGS); store.set('trgp3_progress', PROGRESS); store.set('trgp3_garage', GARAGE); }
+const SETTINGS = Object.assign({ sens: 1, sound: 1, flip: 0, ghost: 1, fx: 1 },
+                               store.get('trgp3_settings', {}), store.get('trgp4_settings', {}));
+const PROGRESS = Object.assign({ bests: {}, medals: {}, finished: {}, jump: 0, flip: 0, climb: 0, bolts: 30, earned: {}, bestAdj: {} },
+                               store.get('trgp3_progress', {}), store.get('trgp4_progress', {}));
+const GARAGE = Object.assign({ frame: '#FE5000', rider: '#39406b', helm: '#FE5000', wheel: '#cfd6dd', trail: 'none', owned: {}, pity: 0 },
+                             store.get('trgp3_garage', {}), store.get('trgp4_garage', {}));
+const GHOSTS = store.get('trgp4_ghosts', {});
+function saveAll() { store.set('trgp4_settings', SETTINGS); store.set('trgp4_progress', PROGRESS); store.set('trgp4_garage', GARAGE); }
+function saveGhosts() { store.set('trgp4_ghosts', GHOSTS); }
+
+/* ---------- bolts economy ---------- */
+let pendingBolts = 0;
+function awardBolts(key, rank) {           // rank: 0 finish, 1 bronze, 2 silver, 3 gold
+  const full = 10 + [0, 8, 18, 30][rank];
+  const amt = PROGRESS.earned[key] ? Math.ceil(full / 2) : full;
+  PROGRESS.earned[key] = true;
+  PROGRESS.bolts += amt; pendingBolts = amt; saveAll();
+  return amt;
+}
+function boltSuffix() { return pendingBolts ? ' · ⚙ +' + pendingBolts + ' bolts' : ''; }
 
 /* ---------- tiny synth ---------- */
 let AC = null;
@@ -231,25 +261,37 @@ const TRACKS = [
     cps:[1200, 2300, 3300],
     pts:[[-300,300],[350,300],[470,268],[590,300],[720,318],[840,282],[960,300],[1120,300],[1190,238],[1360,238],[1450,300],[1600,300],[1700,272],[1780,244],[1860,216],[1940,216],[2050,268],[2180,306],[2320,300],[2480,284],[2570,300],[2660,284],[2750,300],[2900,300],[3050,262],[3200,300],[3380,300],[3560,272],[3720,300],[3900,282],[4060,300],[4300,300],[4700,300]],
     seesaws:[{x:2900, y:288, len:150}], barrels:[{x:3420},{x:3470}], tires:[{x0:2030, x1:2200}],
-    pars:{ gold:15, silver:20, bronze:28 } },
+    logs:[{x:2240, r:15, s:'log'}], mud:[{x0:2620, x1:2820}], shelves:[{x0:3360, x1:3560, y:262}],
+    pars:{ gold:17, silver:23, bronze:34 } },
   { name:'ROCKY QUARRY', sub:'Barrel pit, seesaw gap, the big wall',
     sky:['#3a2b52','#7a4460','#e08a4e'], hill:'rgba(30,20,44,0.55)', finish:5700,
     cps:[1300, 2560, 3900, 4900],
     pts:[[-300,300],[320,300],[440,262],[560,300],[700,322],[830,278],[960,300],[1130,300],[1210,232],[1400,232],[1500,300],[1660,306],[1800,262],[1920,214],[2040,208],[2160,262],[2300,300],[2480,300],[2620,266],[2740,300],[2920,300],[3080,300],[3240,282],[3360,300],[3520,300],[3660,252],[3800,196],[3940,190],[4080,240],[4240,300],[4420,300],[4580,272],[4660,180],[4740,168],[4880,236],[5020,300],[5200,284],[5290,300],[5380,284],[5470,300],[5700,300],[6100,300]],
     seesaws:[{x:2920, y:262, len:170}], barrels:[{x:3130},{x:3190},{x:3255}], tires:[{x0:4060, x1:4260}],
-    pars:{ gold:20, silver:27, bronze:40 } },
+    logs:[{x:1130, r:18, s:'pipe'},{x:3380, r:12, s:'tyre'},{x:3430, r:16, s:'tyre'}], mud:[{x0:1660, x1:1800}], movers:[{x:4160, y:208, w:120, amp:14, per:2.6}],
+    pars:{ gold:30, silver:40, bronze:58 } },
   { name:'SUMMIT RIDGE', sub:'Everything, harder — twin seesaws, tyre hops, the leap',
     sky:['#1d2447','#413a6e','#8a5a7a'], hill:'rgba(14,18,38,0.6)', finish:6900,
     cps:[1400, 2800, 4200, 5600],
     pts:[[-300,300],[300,300],[420,258],[540,300],[690,326],[830,272],[970,300],[1140,300],[1220,224],[1420,224],[1520,300],[1700,300],[1800,258],[1900,206],[2020,196],[2160,250],[2320,302],[2500,300],[2640,268],[2760,300],[2940,300],[3120,300],[3260,276],[3380,300],[3560,282],[3680,300],[3860,300],[3980,238],[4120,182],[4280,176],[4440,232],[4600,300],[4780,300],[4900,262],[5020,300],[5180,300],[5340,274],[5440,178],[5520,168],[5680,240],[5840,300],[6020,300],[6160,276],[6280,300],[6440,284],[6560,300],[6900,300],[7300,300]],
     seesaws:[{x:3030, y:264, len:160},{x:3860, y:262, len:160}], barrels:[{x:3420},{x:3480},{x:4740}], tires:[{x0:4420, x1:4620},{x0:5660, x1:5860}],
-    pars:{ gold:25, silver:34, bronze:48 } },
+    logs:[{x:2400, r:16, s:'log'}], mud:[{x0:2820, x1:2980}], shelves:[{x0:4700, x1:4960, y:258}], movers:[{x:6090, y:252, w:110, amp:14, per:2.4}],
+    pars:{ gold:25, silver:33, bronze:48 } },
+  { name:'NEON FOUNDRY', sub:'Pipes, a mover pit, mud and beams — the full works',
+    sky:['#0e2231','#17384a','#b35a28'], hill:'rgba(8,18,26,0.6)', finish:6600,
+    cps:[1500, 3000, 4500, 5800],
+    pts:[[-300,300],[300,300],[430,262],[560,300],[700,318],[830,300],[960,300],[1080,252],[1240,252],[1360,300],[1520,300],[1660,272],[1800,300],[1960,300],[2100,258],[2240,300],[2380,300],[2540,282],[2680,300],[2840,300],[2980,236],[3120,230],[3280,300],[3440,300],[3600,268],[3740,300],[3900,300],[4040,244],[4180,238],[4340,300],[4400,348],[4460,348],[4520,300],[4660,272],[4800,300],[4960,300],[5120,262],[5260,300],[5420,300],[5560,240],[5700,232],[5860,300],[6040,300],[6180,276],[6320,300],[6600,300],[7000,300]],
+    seesaws:[{x:3440, y:288, len:160}], barrels:[{x:1090},{x:2260},{x:4720}], tires:[{x0:3800, x1:3980}],
+    logs:[{x:700, r:16, s:'pipe'},{x:1520, r:15, s:'log'},{x:5260, r:14, s:'tyre'}],
+    mud:[{x0:1620, x1:1780},{x0:5900, x1:6060}], shelves:[{x0:2060, x1:2280, y:258}],
+    movers:[{x:4430, y:318, w:130, amp:10, per:2.8}],
+    pars:{ gold:23, silver:31, bronze:46 } },
 ];
 const ARENAS = {
   jump: { name:'LONG JUMP', lipX:950, finish:99999, cps:[],
     pts:[[-300,205],[300,205],[520,262],[700,322],[800,326],[880,300],[945,208],[985,196],[1120,300],[1330,352],[1700,362],[2400,362]] },
   flip: { name:'FLIP FRENZY', lipX:950, finish:99999, cps:[],
-    pts:[[-300,205],[300,205],[520,262],[700,322],[800,326],[880,298],[938,196],[978,186],[1150,330],[1420,448],[1900,458],[2600,458]] },
+    pts:[[-300,205],[300,205],[520,262],[700,316],[800,322],[868,296],[908,258],[938,214],[962,192],[982,188],[1090,320],[1400,470],[2000,492],[2800,492]] },
   climb: { name:'HILL CLIMB', finish:99999, cps:[], pts:null }, // generated per run
 };
 function makeClimbPts(seed) {
@@ -271,7 +313,7 @@ function makeClimbPts(seed) {
 
 /* ---------- live run state ---------- */
 let MODE = null;          // {kind:'track'|'jump'|'flip'|'climb', def, pts}
-let seesaws = [], barrels = [];
+let seesaws = [], barrels = [], logs = [], shelves = [], movers = [], mudZones = [];
 let camX = 0, camY = 200, shake = 0;
 function staticY(x) { return CR(MODE.pts, x); }
 function staticSlope(x) { return (staticY(x+3) - staticY(x-3)) / 6; }
@@ -288,11 +330,33 @@ function groundAt(x, wy) {
       if (pen > best.pen && pen < 30) best = { y, slope: Math.tan(sw.ang), surf: 'seesaw', ref: sw, pen };
     }
   }
+  for (const lg of logs) {
+    const dx = x - lg.cx;
+    if (Math.abs(dx) < lg.r) {
+      const h = Math.sqrt(lg.r * lg.r - dx * dx);
+      const y = lg.cy - h;
+      const pen = (wy + WHEEL_R) - y;
+      if (pen > best.pen && pen < 34) best = { y, slope: dx / Math.max(4, h), surf: 'log', ref: lg, pen };
+    }
+  }
+  for (const sh of shelves) {
+    if (x >= sh.x0 - 3 && x <= sh.x1 + 3) {
+      const pen = (wy + WHEEL_R) - sh.y;
+      if (pen > best.pen && pen < 16) best = { y: sh.y, slope: 0, surf: 'shelf', ref: sh, pen };
+    }
+  }
+  for (const mv of movers) {
+    if (x >= mv.x0 - 3 && x <= mv.x1 + 3) {
+      const pen = (wy + WHEEL_R) - mv.curY;
+      if (pen > best.pen && pen < 16) best = { y: mv.curY, slope: 0, surf: 'mover', ref: mv, pen };
+    }
+  }
   if (best.pen <= -3.0) return null;   // 3-unit skin: contact registers before touch (projection clamps pen at 0, so no visual sink) — prevents crest-straddle stalls
   if (best.pen < 0) best.pen = 0;
   const inv = 1 / Math.hypot(best.slope, 1);
   best.nx = -best.slope * inv; best.ny = -inv; best.tx = inv; best.ty = best.slope * inv;
   best.tire = best.surf === 'static' && MODE.def.tires && MODE.def.tires.some(t => x >= t.x0 && x <= t.x1);
+  best.mud = best.surf === 'static' && mudZones.some(z => x >= z.x0 && x <= z.x1);
   return best;
 }
 function makeDynamics(def) {
@@ -302,6 +366,10 @@ function makeDynamics(def) {
     const angMax = Math.atan((gyR - s.y) / (s.len / 2));   // far end resting on the ground
     return { cx: s.x, cy: s.y, len: s.len, ang: angMin, av: 0, angMin, angMax };
   });
+  logs = (def.logs || []).map(l => ({ cx: l.x, cy: staticY(l.x) - l.r + 4, r: l.r, style: l.s || 'log' }));
+  shelves = (def.shelves || []).map(s => ({ x0: s.x0, x1: s.x1, y: s.y }));
+  movers = (def.movers || []).map(m => ({ x0: m.x - m.w / 2, x1: m.x + m.w / 2, y: m.y, amp: m.amp, per: m.per, ph: m.ph || 0, curY: m.y }));
+  mudZones = def.mud || [];
   barrels = (def.barrels || []).map(b => {
     const jx = b.x + (Math.random() * 50 - 25);
     return { x: jx, y: staticY(jx) - 14, px: jx, py: staticY(jx) - 14, r: 13 };
@@ -309,12 +377,14 @@ function makeDynamics(def) {
 }
 
 /* ---------- bike physics (position-based, 240 Hz) ---------- */
-const G = 2500, WHEEL_R = 15, WB = 56, DRIVE = 1720, LEAN_FORCE = 2650;
+const G = 1980, WHEEL_R = 15, WB = 56, DRIVE = 1780, LEAN_FORCE = 2650;
 const SUB = 1/240;
 let rear, front, thrSm = 0, leanSm = 0, wheelSpin = 0;
 let faults = 0, time = 0, started = false, prevTh = 0, angVel = 0;
-let anyContact = false, rearContact = false, wasGrounded = true, fallPeak = 0;
+let anyContact = false, rearContact = false, frontContact = false, wasGrounded = true, fallPeak = 0;
+let hopQueued = false, flickArmT = -9, squat = 0, lastGasTap = -9;
 let cpIndex = 0, lastCp = 0, runClock = 0, anchorX = 0, anchorT = 0, stalled = false;
+let ghostRec = [], ghostTimer = 0, lastTrailT = -9;
 let particles = [];
 /* mode-specific state */
 let jumpState = 'run', jumpDist = 0, landedTimer = 0, contactT = 0, airT = 0, airAng = 0, airTime = 0, flipScore = 0, flipTimeLeft = 75;
@@ -336,6 +406,7 @@ function resetRun(full) {
     faults = 0; time = 0; started = false; cpIndex = 0; lastCp = startXForMode();
     jumpState = 'run'; jumpDist = 0; landedTimer = 0; contactT = 0; airT = 0; airAng = 0; airTime = 0; flipScore = 0; flipTimeLeft = 75;
     climbBestX = 0; stallTime = 0; stalled = false; anchorX = startXForMode(); anchorT = runClock; runOver = false; RESULT = null;
+    ghostRec = []; ghostTimer = 0; pendingBolts = 0;
     makeDynamics(MODE.def);
     $('hFaults').textContent = '0';
     $('hCp').textContent = MODE.kind === 'track' ? 'START' : MODE.def.name;
@@ -379,15 +450,32 @@ function physicsStep(dt) {
   leanSm += Math.max(-8*dt, Math.min(8*dt, lnT - leanSm));
 
   const groundedPre = (rear.y + WHEEL_R > staticY(rear.x) - 2) || (front.y + WHEEL_R > staticY(front.x) - 2);
-  let couple = leanSm * (!groundedPre ? 1 : (rearContact && !anyContact ? 0.8 : 0.45));
+  const rvC = velOf(rear, dt), fvC = velOf(front, dt);
+  const spdC = Math.hypot((rvC.x + fvC.x) / 2, (rvC.y + fvC.y) / 2);
+  let gFactor = 0.45;
+  if (rearContact && !frontContact) gFactor = 0.9;                    /* wheelie hold */
+  if (input.brake && rearContact && spdC < 42) gFactor = 1.3;         /* brake pivot */
+  let couple = leanSm * (!groundedPre ? 1.5 : gFactor);
   if (!groundedPre) {
-    couple += -thrSm * 0.30;
-    if (input.brake) couple += 0.52;
-    couple += Math.max(-0.35, Math.min(0.35, -angVel * 0.18));
+    couple += -thrSm * 0.38;
+    if (input.brake) couple += 0.55;
+    const dampAmt = Math.max(-0.35, Math.min(0.35, -angVel * 0.18)) * (Math.abs(leanSm) > 0.7 ? 0.3 : 1);
+    couple += dampAmt;
   }
-  couple = Math.max(-1.55, Math.min(1.55, couple));
+  couple = Math.max(groundedPre ? -1.55 : -2.6, Math.min(groundedPre ? 1.55 : 2.6, couple));
 
   const wheels = [ { w:rear, isRear:true }, { w:front, isRear:false } ];
+  /* bunny hop: lean flick (back -> forward) or queued impulse (K / double-tap GAS) */
+  if (leanSm <= -0.55) flickArmT = runClock;
+  if (leanSm >= 0.55 && runClock - flickArmT < 0.30) { hopQueued = true; flickArmT = -9; }
+  if (hopQueued) {
+    hopQueued = false;
+    if (anyContact || rearContact || frontContact) {
+      for (const { w } of wheels) { w.py += 335 * dt; w.px -= 22 * dt; }
+      spawnDust(midX(), midY() + 16, 0);
+      beep(280, 0.07, 'triangle', 0.05);
+    }
+  }
   { // lean couple acts along the FRAME's up axis — a pure torque at any orientation
     const thN = Math.atan2(front.y - rear.y, front.x - rear.x);
     const ux = Math.sin(thN), uy = -Math.cos(thN);
@@ -401,7 +489,7 @@ function physicsStep(dt) {
     }
   }
 
-  anyContact = false; rearContact = false;
+  anyContact = false; rearContact = false; frontContact = false;
   for (let it = 0; it < 3; it++) {
     let dx = front.x - rear.x, dy = front.y - rear.y;
     let d = Math.hypot(dx, dy) || 0.0001;
@@ -415,7 +503,7 @@ function physicsStep(dt) {
       if (g) {
         w.x += g.nx * g.pen; w.y += g.ny * g.pen;
         w.px += g.nx * g.pen * 0.92; w.py += g.ny * g.pen * 0.92;
-        if (isRear) rearContact = true; anyContact = true;
+        if (isRear) rearContact = true; else frontContact = true; anyContact = true;
         if (g.surf === 'seesaw') {
           const lever = w.x - g.ref.cx;
           const F = Math.min(2400, 230 * g.pen);
@@ -428,7 +516,8 @@ function physicsStep(dt) {
           if (g.tire && vn < -3.2) vn = -vn * 0.52;       // bounce tyres
           else if (vn < 0) vn = 0;
           vt *= (1 - 0.3 * dt);
-          if (isRear && thrSm > 0.01 && vt / dt < 445) vt += thrSm * DRIVE * (0.72 + 0.28 * thrSm) * dt * dt;
+          if (g.mud) vt *= (1 - 5 * dt);
+          if (isRear && thrSm > 0.01 && vt / dt < 475) vt += thrSm * DRIVE * (g.mud ? 0.5 : 1) * (0.72 + 0.28 * thrSm) * dt * dt;
           if (input.brake) {
             vt *= (1 - 9 * dt);
             if (Math.abs(vt) < 22 * dt && thrSm === 0) vt -= 330 * dt * dt;
@@ -445,6 +534,7 @@ function physicsStep(dt) {
   }
 
   /* seesaw + barrel dynamics */
+  for (const mv of movers) mv.curY = mv.y + Math.sin(runClock * 6.2832 / mv.per + mv.ph) * mv.amp;
   for (const sw of seesaws) {
     sw.av *= Math.exp(-0.9 * dt);
     sw.ang += sw.av * dt;
@@ -460,12 +550,13 @@ function physicsStep(dt) {
       const s = staticSlope(b.x), inv = 1 / Math.hypot(s, 1), nx = -s * inv, ny = -inv;
       b.x += nx * pen; b.y += ny * pen; b.px += nx * pen * 0.8; b.py += ny * pen * 0.8;
     }
-    for (const { w } of wheels) {
+    for (const { w, isRear } of wheels) {
       const ddx = b.x - w.x, ddy = b.y - w.y, dd = Math.hypot(ddx, ddy), min = WHEEL_R + b.r;
       if (dd > 0.01 && dd < min) {
         const push = (min - dd), ux = ddx / dd, uy = ddy / dd;
         b.x += ux * push * 0.78; b.y += uy * push * 0.78;
         w.x -= ux * push * 0.22; w.y -= uy * push * 0.22;
+        if (uy > 0.3) { anyContact = true; if (isRear) rearContact = true; else frontContact = true; }
       }
     }
     { // barrel speed cap + barrel-barrel separation
@@ -512,6 +603,15 @@ function physicsStep(dt) {
     }
   }
 
+  /* cosmetic trail */
+  if (GARAGE.trail !== 'none' && SETTINGS.fx !== 0 && started && !runOver && runClock - lastTrailT > 0.03) {
+    const sv = velOf(rear, dt);
+    if (Math.abs(sv.x) > 90 && particles.length < 120) {
+      lastTrailT = runClock;
+      particles.push({ x: rear.x, y: rear.y + 8, vx: -sv.x * 0.12, vy: -14, life: 0.42, age: 0, r: 3.2, trail: GARAGE.trail });
+    }
+  }
+
   /* landing impact */
   const mv = velOf(rear, dt), mv2 = velOf(front, dt);
   const vyNow = (mv.y + mv2.y) / 2;
@@ -523,9 +623,9 @@ function physicsStep(dt) {
   }
   if (stalled && thrSm > 0.5) { rear.px -= 6 * dt; front.px -= 6 * dt; }
   if (!anyContact) fallPeak = Math.max(fallPeak, vyNow);
+  if (anyContact && !wasGrounded && fallPeak > 280) squat = Math.min(1, fallPeak / 950);
   if (anyContact && !wasGrounded && fallPeak > 430) {
-    shake = Math.min(7, fallPeak / 110);
-    for (let i = 0; i < 10; i++) spawnDust(midX(), midY() + 16, 0);
+    if (SETTINGS.fx !== 0) { shake = Math.min(6, fallPeak / 150); for (let i = 0; i < 10; i++) spawnDust(midX(), midY() + 16, 0); }
     beep(70, 0.12, 'sine', 0.09, 40);
   }
   if (anyContact) fallPeak = 0;
@@ -561,7 +661,9 @@ function climbFinish(how) {
   const dist = Math.max(0, (climbBestX - 260) / 50);
   if (dist > PROGRESS.climb) { PROGRESS.climb = dist; saveAll(); }
   const m = dist >= 80 ? '🥇 GOLD' : dist >= 60 ? '🥈 SILVER' : dist >= 40 ? '🥉 BRONZE' : how;
-  endRun(m + ' — ' + dist.toFixed(1) + ' metres', 'Best: ' + Math.max(PROGRESS.climb, dist).toFixed(1) + ' m · gold at 80 m');
+  const savedClimb = PROGRESS.climb;
+  awardBolts('climb', dist >= 80 ? 3 : dist >= 60 ? 2 : dist >= 40 ? 1 : 0);
+  endRun(m + ' — ' + dist.toFixed(1) + ' metres', 'Best: ' + Math.max(savedClimb, dist).toFixed(1) + ' m · gold at 80 m' + boltSuffix());
   fanfare();
 }
 
@@ -574,7 +676,11 @@ function gameLogic(dt, th, dTh) {
   const speed = Math.hypot((rv.x + fv.x) / 2, (rv.y + fv.y) / 2);
 
   if (MODE.kind === 'track') {
-    if (started) time += dt;
+    if (started) {
+      time += dt;
+      ghostTimer += dt;
+      if (ghostTimer >= 0.1) { ghostTimer = 0; ghostRec.push([Math.round(x), Math.round(rear.y), Math.round(front.y), +th.toFixed(3)]); }
+    }
     const cps = MODE.def.cps;
     while (cpIndex < cps.length && x > cps[cpIndex]) {
       lastCp = cps[cpIndex]; cpIndex++;
@@ -591,9 +697,13 @@ function gameLogic(dt, th, dTh) {
       if (medal.indexOf('🥇') === 0) PROGRESS.medals[key] = '🥇';
       else if (medal.indexOf('🥈') === 0 && PROGRESS.medals[key] !== '🥇') PROGRESS.medals[key] = '🥈';
       else if (medal.indexOf('🥉') === 0 && !PROGRESS.medals[key]) PROGRESS.medals[key] = '🥉';
-      PROGRESS.finished[key] = true; saveAll();
+      PROGRESS.finished[key] = true;
+      const rank = medal.indexOf('🥇') === 0 ? 3 : medal.indexOf('🥈') === 0 ? 2 : medal.indexOf('🥉') === 0 ? 1 : 0;
+      awardBolts('track' + key, rank);
+      if (!PROGRESS.bestAdj[key] || adj < PROGRESS.bestAdj[key]) { PROGRESS.bestAdj[key] = adj; GHOSTS[key] = ghostRec; saveGhosts(); }
+      saveAll();
       endRun(medal + ' — ' + time.toFixed(2) + 's',
-             faults + ' fault' + (faults === 1 ? '' : 's') + ' · medal time ' + adj.toFixed(1) + 's (faults +5s each)');
+             faults + ' fault' + (faults === 1 ? '' : 's') + ' · medal time ' + adj.toFixed(1) + 's (faults +5s each)' + boltSuffix());
       fanfare(); return;
     }
   }
@@ -611,9 +721,10 @@ function gameLogic(dt, th, dTh) {
     else if (jumpState === 'landed') {
       landedTimer += dt;
       if (landedTimer > 1.4 || speed < 18) {
-        if (jumpDist > PROGRESS.jump) { PROGRESS.jump = jumpDist; saveAll(); }
-        const m = jumpDist >= 10.5 ? '🥇 GOLD' : jumpDist >= 7.5 ? '🥈 SILVER' : jumpDist >= 4.5 ? '🥉 BRONZE' : 'LANDED';
-        endRun(m + ' — ' + jumpDist.toFixed(1) + ' metres', 'Best: ' + Math.max(PROGRESS.jump, jumpDist).toFixed(1) + ' m · gold at 10.5 m');
+        if (jumpDist > PROGRESS.jump) PROGRESS.jump = jumpDist;
+        awardBolts('jump', jumpDist >= 11.5 ? 3 : jumpDist >= 8.5 ? 2 : jumpDist >= 5 ? 1 : 0); saveAll();
+        const m = jumpDist >= 11.5 ? '🥇 GOLD' : jumpDist >= 8.5 ? '🥈 SILVER' : jumpDist >= 5 ? '🥉 BRONZE' : 'LANDED';
+        endRun(m + ' — ' + jumpDist.toFixed(1) + ' metres', 'Best: ' + Math.max(PROGRESS.jump, jumpDist).toFixed(1) + ' m · gold at 11.5 m' + boltSuffix());
         fanfare(); return;
       }
     }
@@ -641,8 +752,9 @@ function gameLogic(dt, th, dTh) {
       }
       if (flipTimeLeft <= 0) {
         flipTimeLeft = 0;
-        if (flipScore > PROGRESS.flip) { PROGRESS.flip = flipScore; saveAll(); }
-        endRun('TIME! — ' + flipScore + ' pts', 'Best: ' + Math.max(PROGRESS.flip, flipScore) + ' pts · 100 per flip + airtime');
+        if (flipScore > PROGRESS.flip) PROGRESS.flip = flipScore;
+        awardBolts('flip', flipScore >= 1500 ? 3 : flipScore >= 800 ? 2 : flipScore >= 350 ? 1 : 0); saveAll();
+        endRun('TIME! — ' + flipScore + ' pts', 'Best: ' + Math.max(PROGRESS.flip, flipScore) + ' pts · gold at 1500 pts' + boltSuffix());
         fanfare(); return;
       }
     }
@@ -652,6 +764,7 @@ function gameLogic(dt, th, dTh) {
     climbBestX = Math.max(climbBestX, x);
     if (started && anyContact && speed < 9 && x > 300) stallTime += dt; else stallTime = 0;
     if (stallTime > 2.5) { climbFinish('STALLED'); return; }
+    if (x > 4460) { climbFinish('TOPPED OUT!'); return; }
     if (climbBestX > 1400 && x < 420) { climbFinish('SLID OUT'); return; }
   }
 
@@ -659,7 +772,7 @@ function gameLogic(dt, th, dTh) {
   const cos = Math.cos(th), sin = Math.sin(th);
   const hx = midX() + cos * 2 - sin * -38, hy = midY() + sin * 2 + cos * -38;
   if (hy >= staticY(hx) - 2 || (anyContact && Math.abs(th) > 2.55)) {
-    if (!(MODE.kind === 'jump' && jumpState === 'landed')) doFault();
+    if (!((MODE.kind === 'jump' || MODE.kind === 'flip') && jumpState === 'landed')) doFault();
   }
   if (midY() > staticY(midX()) + 320) doFault();
 }
@@ -698,6 +811,7 @@ function frame(ts) {
     while (acc >= SUB && n < 16) { physicsStep(SUB); acc -= SUB; n++; }
   } else if (MODE) { prevSnap = snap(); }
   const a = Math.max(0, Math.min(1, acc / SUB));
+  squat = Math.max(0, squat - dtF * 2.2);
   updateParticles(dtF);
   draw(a, dtF);
   updateHUD();
@@ -772,6 +886,16 @@ function draw(a, dtF) {
   for (let x = x0; x <= x1; x += 5) { const y = staticY(x); x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
   ctx.strokeStyle = '#69b455'; ctx.lineWidth = 5; ctx.stroke();
 
+  // mud patches: dark, wet, surface-hugging
+  for (const z of mudZones) {
+    ctx.beginPath();
+    for (let x = z.x0; x <= z.x1; x += 10) { const y = staticY(x); x === z.x0 ? ctx.moveTo(x, y - 1) : ctx.lineTo(x, y - 1); }
+    for (let x = z.x1; x >= z.x0; x -= 10) ctx.lineTo(x, staticY(x) + 11);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(74,52,30,0.85)'; ctx.fill();
+    ctx.fillStyle = 'rgba(140,110,70,0.5)';
+    for (let x = z.x0 + 14; x < z.x1; x += 44) ctx.fillRect(x, staticY(x) + 1, 18, 2);
+  }
   // tyre bounce zones: draw tyre stacks
   if (MODE.def.tires) for (const t of MODE.def.tires) {
     for (let x = t.x0 + 8; x < t.x1; x += 26) drawTyre(x, staticY(x) - 2);
@@ -827,13 +951,67 @@ function draw(a, dtF) {
   }
   // barrels
   for (const b of barrels) drawBarrel(b.x, b.y, b.r);
+  // logs / pipes / tyre obstacles (ride-over circles)
+  for (const lg of logs) {
+    ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r, 0, Math.PI * 2);
+    if (lg.style === 'pipe') {
+      ctx.fillStyle = '#8b939e'; ctx.fill();
+      ctx.strokeStyle = '#5d646e'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r * 0.55, 0, Math.PI * 2);
+      ctx.strokeStyle = '#6d757f'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(lg.cx, lg.cy, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#4a5058'; ctx.fill();
+    } else if (lg.style === 'tyre') {
+      ctx.fillStyle = '#23232a'; ctx.fill();
+      ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = '#4a3520'; ctx.fill();
+    } else {
+      ctx.fillStyle = '#8a5a2a'; ctx.fill();
+      ctx.strokeStyle = '#6e4520'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r * 0.62, 0, Math.PI * 2);
+      ctx.strokeStyle = '#a5713a'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r * 0.3, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  // shelves (ride-over beams)
+  for (const sh of shelves) {
+    ctx.strokeStyle = '#5d4a33'; ctx.lineWidth = 5;
+    for (const px of [sh.x0 + 8, sh.x1 - 8]) {
+      ctx.beginPath(); ctx.moveTo(px, sh.y + 3); ctx.lineTo(px, staticY(px)); ctx.stroke();
+    }
+    ctx.fillStyle = '#a5713a'; ctx.fillRect(sh.x0 - 4, sh.y - 3, sh.x1 - sh.x0 + 8, 6);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(sh.x0 - 4, sh.y + 1, sh.x1 - sh.x0 + 8, 2);
+  }
+  // movers (elevator platforms on guide rails)
+  for (const mv of movers) {
+    ctx.strokeStyle = 'rgba(200,210,220,0.4)'; ctx.lineWidth = 2;
+    for (const px of [mv.x0 + 4, mv.x1 - 4]) {
+      ctx.beginPath(); ctx.moveTo(px, mv.y - mv.amp - 16); ctx.lineTo(px, mv.y + mv.amp + 16); ctx.stroke();
+    }
+    ctx.fillStyle = '#3a3f46'; ctx.fillRect(mv.x0 - 3, mv.curY - 3, mv.x1 - mv.x0 + 6, 7);
+    ctx.fillStyle = '#FE5000';
+    for (let x = mv.x0 + 2; x < mv.x1 - 6; x += 16) ctx.fillRect(x, mv.curY - 3, 8, 3);
+  }
   // particles
   for (const p of particles) {
-    ctx.globalAlpha = Math.max(0, 1 - p.age / p.life) * 0.55;
+    ctx.globalAlpha = Math.max(0, 1 - p.age / p.life) * (p.trail ? 0.8 : 0.55);
+    if (p.trail) ctx.globalCompositeOperation = 'lighter';
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#c9a06a'; ctx.fill();
+    ctx.fillStyle = p.trail || '#c9a06a'; ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
   }
   ctx.globalAlpha = 1;
+  // best-run ghost
+  if (MODE.kind === 'track' && SETTINGS.ghost && started && !runOver) {
+    const rec = GHOSTS[MODE.trackIdx];
+    if (rec && rec.length > 1) {
+      const fi = Math.min(rec.length - 1.001, Math.max(0, time / 0.1));
+      const i0 = Math.floor(fi), fr = fi - i0;
+      const A = rec[i0], B = rec[Math.min(rec.length - 1, i0 + 1)];
+      const gx = A[0] + (B[0] - A[0]) * fr, gry = A[1] + (B[1] - A[1]) * fr, gfy = A[2] + (B[2] - A[2]) * fr, gth = A[3] + (B[3] - A[3]) * fr;
+      const gc = Math.cos(gth) * WB / 2, gs = Math.sin(gth) * WB / 2;
+      drawBike(gx - gc, gry, gx + gc, gfy, true);
+    }
+  }
   drawBike(rx, ry, fx, fy);
   if (engOsc) engineUpdate(thrSm, mvx);
 }
@@ -859,7 +1037,11 @@ function drawBikePreview() {
   ctx.strokeStyle = '#69b455'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(0, VH * 0.78); ctx.quadraticCurveTo(VW * 0.5, VH * 0.66, VW, VH * 0.8); ctx.stroke();
 }
-function drawBike(rx, ry, fx, fy) {
+function drawBike(rx, ry, fx, fy, ghost) {
+  const sq = ghost ? 0 : squat;
+  if (sq > 0.02) { const mx0 = (rx + fx) / 2, my0 = (ry + fy) / 2; rx += (mx0 - rx) * sq * 0.13; ry += (my0 - ry) * sq * 0.13; fx += (mx0 - fx) * sq * 0.13; fy += (my0 - fy) * sq * 0.13; }
+  const FC = ghost ? '#aebfd4' : GARAGE.frame, RC = ghost ? '#8fa3bd' : GARAGE.rider, HC = ghost ? '#aebfd4' : GARAGE.helm, WC = ghost ? '#aebfd4' : GARAGE.wheel;
+  if (ghost) ctx.globalAlpha = 0.35;
   const th = Math.atan2(fy - ry, fx - rx);
   const cos = Math.cos(th), sin = Math.sin(th);
   const mx = (rx + fx) / 2, my = (ry + fy) / 2;
@@ -873,7 +1055,7 @@ function drawBike(rx, ry, fx, fy) {
   for (const w of [[rx, ry], [fx, fy]]) {
     ctx.beginPath(); ctx.arc(w[0], w[1], WHEEL_R, 0, Math.PI * 2);
     ctx.fillStyle = '#191919'; ctx.fill();
-    ctx.strokeStyle = '#c9c9c9'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = WC; ctx.lineWidth = 2; ctx.stroke();
     ctx.beginPath();
     for (let k = 0; k < 3; k++) {
       const a = wheelSpin + k * Math.PI * 2 / 3;
@@ -881,21 +1063,22 @@ function drawBike(rx, ry, fx, fy) {
     }
     ctx.strokeStyle = '#8a8a8a'; ctx.lineWidth = 2; ctx.stroke();
   }
-  ctx.strokeStyle = GARAGE.frame; ctx.lineWidth = 4.5;
+  ctx.strokeStyle = FC; ctx.lineWidth = 4.5;
   ctx.beginPath(); ctx.moveTo(peg[0], peg[1]); ctx.lineTo(tank[0], tank[1]); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
   ctx.strokeStyle = '#22242e'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(seat[0], seat[1]); ctx.lineTo(tank[0], tank[1]); ctx.stroke();
-  const hip = L(-7, -23), shoulder = L(6, -36), head = L(10, -44), knee = L(8, -14);
-  ctx.strokeStyle = GARAGE.rider; ctx.lineWidth = 5;
+  const hip = L(-7, -23 + sq * 5), shoulder = L(6, -36 + sq * 4), head = L(10, -44 + sq * 4), knee = L(8, -14);
+  ctx.strokeStyle = RC; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(knee[0], knee[1]); ctx.lineTo(peg[0], peg[1]); ctx.stroke();
   ctx.lineWidth = 6.5;
   ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(shoulder[0], shoulder[1]); ctx.stroke();
   ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(shoulder[0], shoulder[1]); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
   ctx.beginPath(); ctx.arc(head[0], head[1], 6.5, 0, Math.PI * 2);
-  ctx.fillStyle = GARAGE.helm; ctx.fill();
+  ctx.fillStyle = HC; ctx.fill();
   ctx.fillStyle = '#14161f';
   ctx.fillRect(head[0] + 1, head[1] - 2, 6, 3);
+  if (ghost) ctx.globalAlpha = 1;
 }
 function updateHUD() {
   if (!inPlay || !MODE) return;
@@ -903,7 +1086,16 @@ function updateHUD() {
   const lv = leanSm;
   lf.style.left = lv < 0 ? (50 + lv * 50) + '%' : '50%';
   lf.style.width = Math.abs(lv) * 50 + '%';
-  if (MODE.kind === 'track') $('hTime').textContent = time.toFixed(2);
+  if (MODE.kind === 'track') {
+    $('hTime').textContent = time.toFixed(2);
+    const hp = $('hPace');
+    if (hp) {
+      const adj = time + faults * 5, pars = MODE.def.pars;
+      const pace = adj <= pars.gold ? '🥇 GOLD PACE' : adj <= pars.silver ? '🥈 SILVER PACE' : adj <= pars.bronze ? '🥉 BRONZE PACE' : '⚪ NO MEDAL';
+      hp.textContent = pace;
+      hp.style.color = adj <= pars.gold ? '#ffd23f' : adj <= pars.silver ? '#cfd6dd' : adj <= pars.bronze ? '#e09a5a' : '#8a93a5';
+    }
+  }
   else if (MODE.kind === 'jump') $('hTime').textContent = jumpState === 'landed' ? jumpDist.toFixed(1) + ' m' : time.toFixed(2);
   else if (MODE.kind === 'flip') { $('hLabL').textContent = 'TIME LEFT'; $('hTime').textContent = Math.max(0, flipTimeLeft).toFixed(0);
     $('hLabR').textContent = 'SCORE'; $('hFaults').textContent = flipScore; }
@@ -948,6 +1140,7 @@ function startMode(kind, idx) {
   $('hud').style.display = 'flex'; $('leanBar').style.display = 'block';
   for (const id of ['bGas','bBrake','bMenu']) $(id).style.display = 'flex';
   $('hName').textContent = def.name;
+  if ($('hPace')) $('hPace').textContent = '';
   $('hLabL').textContent = 'TIME'; $('hLabR').textContent = 'FAULTS'; $('hFaults').textContent = '0';
   camX = 60; camY = staticY(120) - 80;
   resetRun(true);
@@ -995,50 +1188,118 @@ function refreshSkillBests() {
   if ($('flipBest')) $('flipBest').textContent = 'Best: ' + (PROGRESS.flip ? PROGRESS.flip + ' pts' : '—');
   if ($('climbBest')) $('climbBest').textContent = 'Best: ' + (PROGRESS.climb ? PROGRESS.climb.toFixed(1) + ' m' : '—');
 }
-const FRAME_COLORS = ['#FE5000','#e33f3f','#2f7fe0','#39b54a','#8a4fd0','#f2c230','#e8e8f0','#22242e'];
-const RIDER_COLORS = ['#39406b','#7a2d23','#1f5c46','#5c4a1f','#4a2358','#24303c'];
-function buildSwatches(rowId, colors, key) {
+const RARITY = ['COMMON','RARE','EPIC','LEGENDARY'];
+const RARITY_C = ['#9fb4c8','#3fa9f5','#b26bff','#ffb52e'];
+const FRAME_LIST = [['Rabbit Orange','#FE5000'],['Crimson','#e33f3f'],['Royal Blue','#2f7fe0'],['Lime','#39b54a'],['Violet','#8a4fd0'],['Sunbeam','#f2c230'],['White','#e8e8f0'],['Stealth','#22242e']];
+const STOCK = {
+  frame: FRAME_LIST,
+  rider: [['Midnight','#39406b'],['Rust','#7a2d23'],['Forest','#1f5c46'],['Sand','#5c4a1f'],['Grape','#4a2358'],['Slate','#24303c']],
+  helm: FRAME_LIST,
+  wheel: [['Stock Silver','#cfd6dd']],
+  trail: [['No Trail','none']],
+};
+const POOL = [
+  { cat:'frame', name:'Camo Green', color:'#5a7247', r:0 }, { cat:'frame', name:'Sunset Fade', color:'#ff7a3f', r:0 },
+  { cat:'frame', name:'Midnight Purple', color:'#6a3df0', r:1 }, { cat:'frame', name:'Hot Pink', color:'#ff4fa3', r:1 },
+  { cat:'frame', name:'Aqua Ice', color:'#37e0c8', r:2 }, { cat:'frame', name:'Champion Gold', color:'#ffcf3f', r:3 },
+  { cat:'rider', name:'Camo Kit', color:'#66713f', r:0 }, { cat:'rider', name:'Whiteout', color:'#eef1f4', r:1 },
+  { cat:'rider', name:'Purple Haze', color:'#7a4fd0', r:1 }, { cat:'rider', name:'Bubblegum', color:'#ff8ac2', r:2 },
+  { cat:'helm', name:'Rose Helm', color:'#ff9db1', r:0 }, { cat:'helm', name:'Violet Storm', color:'#8a5fe8', r:1 },
+  { cat:'helm', name:'Carbon Weave', color:'#3a3f46', r:1 }, { cat:'helm', name:'Gold Rush', color:'#f7b731', r:2 },
+  { cat:'wheel', name:'Slate Rims', color:'#59616c', r:0 }, { cat:'wheel', name:'Cyan Glow Rims', color:'#2fd8e8', r:1 },
+  { cat:'wheel', name:'Magenta Rims', color:'#e83fd0', r:2 }, { cat:'wheel', name:'Gold Rims', color:'#ffcf3f', r:2 },
+  { cat:'trail', name:'Ember Trail', color:'#ff8a3f', r:1 }, { cat:'trail', name:'Neon Cyan Trail', color:'#2fe8ff', r:1 },
+  { cat:'trail', name:'Plasma Trail', color:'#b26bff', r:2 }, { cat:'trail', name:'Starlight Trail', color:'#ffd94f', r:3 },
+];
+function itemsFor(cat) {
+  return STOCK[cat].map(([name, color]) => ({ cat, name, color, r: -1 }))
+    .concat(POOL.filter(p => p.cat === cat));
+}
+function crateMsg(txt, color) {
+  const m = $('crateMsg'); if (!m) return;
+  m.textContent = txt; m.style.color = color || '#cfd6dd';
+}
+const CRATE_COST = 40;
+function openCrate() {
+  if (PROGRESS.bolts < CRATE_COST) { crateMsg('Not enough bolts — medals earn bolts (need ⚙40)', '#e33f3f'); beep(160, 0.12, 'square', 0.05); return; }
+  PROGRESS.bolts -= CRATE_COST;
+  let r;
+  if (GARAGE.pity >= 11) r = Math.random() < 0.75 ? 2 : 3;
+  else { const roll = Math.random() * 100; r = roll < 58 ? 0 : roll < 86 ? 1 : roll < 97 ? 2 : 3; }
+  if (r >= 2) GARAGE.pity = 0; else GARAGE.pity++;
+  const cands = POOL.filter(p => p.r === r);
+  const item = cands[Math.floor(Math.random() * cands.length)];
+  if (GARAGE.owned[item.name]) { PROGRESS.bolts += 10; crateMsg('DUPLICATE — ' + item.name + ' (' + RARITY[r] + ') · refunded ⚙10', RARITY_C[r]); }
+  else { GARAGE.owned[item.name] = true; crateMsg(RARITY[r] + '! ' + item.name + ' — ' + item.cat + ' unlocked, tap to equip', RARITY_C[r]); }
+  saveAll(); markGarage();
+  beep(r >= 2 ? 1320 : 880, 0.12, 'square', 0.05);
+  if (r >= 2) setTimeout(() => beep(1760, 0.16, 'square', 0.05), 110);
+}
+function buildItems(rowId, cat) {
   const row = $(rowId); if (!row) return;
   row.innerHTML = '';
-  for (const c of colors) {
+  for (const it of itemsFor(cat)) {
+    const owned = it.r < 0 || GARAGE.owned[it.name];
     const d = document.createElement('div');
-    d.className = 'sw' + (GARAGE[key] === c ? ' sel' : '');
-    d.style.background = c;
-    d.addEventListener('click', () => { GARAGE[key] = c; saveAll(); markGarage(); beep(760, 0.04, 'square', 0.03); });
+    d.className = 'sw' + (GARAGE[cat] === it.color ? ' sel' : '') + (owned ? '' : ' locked');
+    d.style.background = it.color === 'none' ? '#3a3f46' : it.color;
+    if (!owned) { d.style.borderColor = RARITY_C[it.r]; d.textContent = '🔒'; }
+    d.title = it.name;
+    d.addEventListener('click', () => {
+      if (!owned) { crateMsg('🔒 ' + it.name + ' — ' + RARITY[it.r] + ' · find it in a crate', RARITY_C[it.r]); beep(220, 0.06, 'square', 0.03); return; }
+      GARAGE[cat] = it.color; saveAll(); markGarage(); beep(760, 0.04, 'square', 0.03);
+    });
     row.appendChild(d);
   }
 }
 function markGarage() {
-  buildSwatches('swFrame', FRAME_COLORS, 'frame');
-  buildSwatches('swRider', RIDER_COLORS, 'rider');
-  buildSwatches('swHelm', FRAME_COLORS, 'helm');
+  buildItems('swFrame', 'frame');
+  buildItems('swRider', 'rider');
+  buildItems('swHelm', 'helm');
+  buildItems('swWheel', 'wheel');
+  buildItems('swTrail', 'trail');
+  if ($('boltCount')) $('boltCount').textContent = PROGRESS.bolts;
+  if ($('pityHint')) $('pityHint').textContent = 'EPIC or better guaranteed within ' + Math.max(1, 12 - GARAGE.pity) + ' opens';
 }
 function markSettings() {
   document.querySelectorAll('#sensOpt .sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.sens === SETTINGS.sens));
   document.querySelectorAll('#sndOpt .sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.snd === SETTINGS.sound));
   const fl = $('flipOpt');
   if (fl) fl.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.flip === (SETTINGS.flip || 0)));
+  const gh = $('ghostOpt');
+  if (gh) gh.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.ghost === (SETTINGS.ghost === 0 ? 0 : 1)));
+  const fx = $('fxOpt');
+  if (fx) fx.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.fx === (SETTINGS.fx === 0 ? 0 : 1)));
 }
-(function addFlipRow() {
+(function addExtraSettingsRows() {
   const scr = $('scrSettings');
-  const ttl = document.createElement('div'); ttl.className = 'secttl'; ttl.textContent = 'WHEEL DIRECTION';
-  const opt = document.createElement('div'); opt.className = 'opt'; opt.id = 'flipOpt';
-  opt.innerHTML = '<button class="sbtn" data-flip="0">STANDARD</button><button class="sbtn" data-flip="1">FLIPPED</button>';
-  const help = document.createElement('div'); help.className = 'help'; help.style.margin = '3px 0 5px';
-  help.textContent = 'If scrolling feels backwards on your R1, flip it.';
   const back = scr.querySelector('.backrow');
-  scr.insertBefore(ttl, back); scr.insertBefore(opt, back); scr.insertBefore(help, back);
+  const rows = [
+    ['WHEEL DIRECTION', 'flipOpt', '<button class="sbtn" data-flip="0">STANDARD</button><button class="sbtn" data-flip="1">FLIPPED</button>', 'If scrolling feels backwards on your R1, flip it.'],
+    ['BEST-RUN GHOST', 'ghostOpt', '<button class="sbtn" data-ghost="1">ON</button><button class="sbtn" data-ghost="0">OFF</button>', 'Race a translucent copy of your best medal run.'],
+    ['EFFECTS', 'fxOpt', '<button class="sbtn" data-fx="1">ON</button><button class="sbtn" data-fx="0">OFF</button>', 'Screen shake and cosmetic trails.'],
+  ];
+  for (const [label, id, html, help] of rows) {
+    const ttl = document.createElement('div'); ttl.className = 'secttl'; ttl.textContent = label;
+    const opt = document.createElement('div'); opt.className = 'opt'; opt.id = id;
+    opt.innerHTML = html;
+    const h = document.createElement('div'); h.className = 'help'; h.style.margin = '3px 0 5px';
+    h.textContent = help;
+    scr.insertBefore(ttl, back); scr.insertBefore(opt, back); scr.insertBefore(h, back);
+  }
 })();
 
 /* ---------- global click routing ---------- */
 document.addEventListener('click', e => {
   audioInit();
-  const el = e.target.closest('[data-act],[data-skill],[data-sens],[data-snd],[data-flip]');
+  const el = e.target.closest('[data-act],[data-skill],[data-sens],[data-snd],[data-flip],[data-ghost],[data-fx]');
   if (!el) return;
   const act = el.dataset.act;
   if (el.dataset.sens !== undefined) { SETTINGS.sens = +el.dataset.sens; saveAll(); markSettings(); return; }
   if (el.dataset.snd !== undefined) { SETTINGS.sound = +el.dataset.snd; if (!SETTINGS.sound) { engineStop(); AC = null; } saveAll(); markSettings(); return; }
   if (el.dataset.flip !== undefined) { SETTINGS.flip = +el.dataset.flip; saveAll(); markSettings(); return; }
+  if (el.dataset.ghost !== undefined) { SETTINGS.ghost = +el.dataset.ghost; saveAll(); markSettings(); return; }
+  if (el.dataset.fx !== undefined) { SETTINGS.fx = +el.dataset.fx; saveAll(); markSettings(); return; }
   if (el.dataset.skill) { startMode(el.dataset.skill); return; }
   switch (act) {
     case 'career': showScreen('scrTracks'); break;
@@ -1049,9 +1310,13 @@ document.addEventListener('click', e => {
     case 'title': quitToTitle(); break;
     case 'resume': togglePause(false); break;
     case 'restart': restartRun(); break;
+    case 'crate': openCrate(); break;
+    case 'cp':
+      if (MODE && MODE.kind === 'track') { togglePause(false); spawnAt(lastCp + 30); prevSnap = snap(); showMsg('CHECKPOINT RESTART', ''); }
+      break;
     case 'quit': quitToTitle(); break;
     case 'wipe':
-      if (el.dataset.arm) { PROGRESS.bests = {}; PROGRESS.medals = {}; PROGRESS.finished = {}; PROGRESS.jump = 0; PROGRESS.flip = 0; PROGRESS.climb = 0; saveAll(); el.textContent = 'RESET PROGRESS'; delete el.dataset.arm; buildTrackList(); refreshSkillBests(); }
+      if (el.dataset.arm) { PROGRESS.bests = {}; PROGRESS.medals = {}; PROGRESS.finished = {}; PROGRESS.jump = 0; PROGRESS.flip = 0; PROGRESS.climb = 0; PROGRESS.bolts = 30; PROGRESS.earned = {}; PROGRESS.bestAdj = {}; for (const k in GHOSTS) delete GHOSTS[k]; saveGhosts(); saveAll(); el.textContent = 'RESET PROGRESS'; delete el.dataset.arm; buildTrackList(); refreshSkillBests(); markGarage(); }
       else { el.dataset.arm = '1'; el.textContent = 'TAP AGAIN TO CONFIRM'; }
       break;
   }
@@ -1063,7 +1328,9 @@ $('bMenu').addEventListener('pointerdown', e => { e.preventDefault(); togglePaus
 /* ---------- riding input ---------- */
 function bindPedal(id, prop) {
   const el = $(id);
-  const on = e => { e.preventDefault(); audioInit(); input[prop] = true; el.classList.add('on'); };
+  const on = e => { e.preventDefault(); audioInit();
+    if (prop === 'gas') { const t = performance.now() / 1000; if (t - lastGasTap < 0.3) hopQueued = true; lastGasTap = t; }
+    input[prop] = true; el.classList.add('on'); };
   const off = e => { e.preventDefault(); input[prop] = false; el.classList.remove('on'); };
   el.addEventListener('pointerdown', on);
   el.addEventListener('pointerup', off);
@@ -1075,6 +1342,8 @@ const KEYMAP = { ArrowUp:'gas', KeyW:'gas', ArrowDown:'brake', KeyS:'brake' };
 addEventListener('keydown', e => {
   if (inPlay && MODE && !paused && (e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); restartRun(); return; }
   if (e.code === 'KeyR' && inPlay) { restartRun(); return; }
+  if (e.code === 'KeyK' && inPlay && !paused) { hopQueued = true; return; }
+  if (e.code === 'KeyC' && inPlay && !paused && MODE && MODE.kind === 'track') { spawnAt(lastCp + 30); prevSnap = snap(); showMsg('CHECKPOINT RESTART', ''); return; }
   if (e.code === 'Escape' && inPlay) { togglePause(!paused); return; }
   const p = KEYMAP[e.code]; if (p && inPlay) { input[p] = true; e.preventDefault(); }
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') keyLean = -1;
@@ -1087,7 +1356,11 @@ addEventListener('keyup', e => {
 addEventListener('wheel', e => {
   const dir = (e.deltaY > 0 ? 1 : -1) * (SETTINGS.flip ? -1 : 1);
   if (inPlay && !paused && !runOver) addWheelTick(dir);
-  else if (!inPlay || paused) moveSel(e.deltaY > 0 ? 1 : -1);
+  else if (!inPlay || paused) {
+    moveSel(e.deltaY > 0 ? 1 : -1);
+    const scr = document.querySelector('.screen.show');
+    if (scr) scr.scrollTop += (e.deltaY > 0 ? 1 : -1) * 40;
+  }
 }, { passive:true });
 function sideButton() { if (inPlay && MODE) restartRun(); }
 addEventListener('sideClick', sideButton);
@@ -1104,10 +1377,15 @@ window.__game = {
              time, faults, finished:runOver, cpIndex, mode:MODE ? MODE.kind : null,
              jumpState, jumpDist, flipScore, flipTimeLeft,
              climbM: Math.max(0, (climbBestX - 260) / 50),
-             seesawAng: seesaws.map(s => +s.ang.toFixed(2)), barrelsX: barrels.map(b => Math.round(b.x)) }; },
+             seesawAng: seesaws.map(s => +s.ang.toFixed(2)), barrelsX: barrels.map(b => Math.round(b.x)),
+             bolts: PROGRESS.bolts, pity: GARAGE.pity, ownedCount: Object.keys(GARAGE.owned).length,
+             ghostLen: (GHOSTS[MODE && MODE.trackIdx] || []).length, trail: GARAGE.trail }; },
   setAnalog: (thr, lean) => { ANALOG.throttle = thr; ANALOG.lean = lean; },
   setInput: (code, on) => { const p = KEYMAP[code]; if (p) input[p] = !!on; },
   wheelTick: d => addWheelTick(d),
+  hop: () => { hopQueued = true; },
+  openCrate: () => openCrate(),
+  giveBolts: n => { PROGRESS.bolts += n; },
   step: (dt) => { const steps = Math.max(1, Math.round(dt / SUB)); for (let i = 0; i < steps; i++) physicsStep(SUB); },
   startTrack: i => startMode('track', i),
   startSkill: k => startMode(k),

@@ -1,39 +1,22 @@
-# Trial Rider GP — R1 Edition (v3)
+# Trial Rider GP — R1 Edition (v4)
 
-A Trials-style physics moto game built for the Rabbit R1's 240×282 screen.
-Ride at **https://mrghostguy.github.io/trial-rider-gp-r1/** or scan the creation
-code on your R1 (Creations → Create → "add via QR code").
+A Trials-style physics motorcycle game built for the Rabbit R1's 240×282 screen.
 
-## What's in v3
+**Play:** https://mrghostguy.github.io/trial-rider-gp-r1/
 
-- **Career mode** — 3 tracks (Training Grounds, Rocky Quarry, Summit Ridge) with
-  checkpoints, medals (faults add +5s), best times and unlock progression.
-- **Skill games** — Long Jump, Flip Frenzy (backflips off a big kicker, 75 seconds,
-  loop resets each attempt) and Hill Climb (a procedurally generated hill that
-  steepens to a wall — new layout every attempt).
-- **Real trials obstacles** — working seesaws that tip as you cross, loose barrels
-  you can knock around (they spawn in slightly different spots each run), and
-  bounce-tyre zones.
-- **Garage** — bike frame, rider suit and helmet colours, saved on the device.
-- **Synth engine audio** and sound effects (mutable in Settings).
+## v4 — the big overhaul
+- **New physics feel** — lighter gravity, floatier arc, suspension-soak landings (the bike crouches on big drops instead of slamming), stronger air control.
+- **Trials tech** — bunny hop (flick lean back→forward, double-tap GAS, or K), wheelie holds, brake-pivot turns.
+- **Real trials obstacles** — ride-over logs, pipes and tyres, balance beams over barrel pits, moving elevator platforms, mud patches that sap your drive, seesaws, loose barrels, bounce-tyre zones, wall steps.
+- **4 career tracks** — Training Grounds, Rocky Quarry, Summit Ridge, and the new **Neon Foundry**, with checkpoints, medals and finish-to-unlock progression.
+- **Skill games** — Long Jump, Flip Frenzy (rebuilt kicker — backflips actually work now), Hill Climb (a new hill every run).
+- **Bolts & crates** — medals pay bolts ⚙; spend them on cosmetic crates in the Garage. 22 unlockables across COMMON / RARE / EPIC / LEGENDARY with a pity guarantee (EPIC+ within 12 opens); duplicates refund bolts.
+- **Ghost racing** — your best medal run on each track races beside you as a translucent ghost.
+- **QoL** — live medal-pace readout in the HUD, checkpoint restart from the pause menu (or C), scrollable menus, ghost & effects toggles.
 
 ## Controls (R1)
+- **Scroll wheel** — lean (sensitivity + flip direction in Settings)
+- **Side button** — quick restart
+- **GAS / BRAKE** pedals on screen; in the air, GAS pitches back, BRAKE pitches forward
 
-- **Scroll wheel** — lean. Scroll one way to lean back, the other to lean forward.
-  Tune it under Settings → Scroll/Lean Sensitivity (Low / Normal / High / Max),
-  and flip the direction there too if it feels backwards.
-- **Side button** — quick restart to the start of the track.
-- **GAS / BRAKE** — on-screen pedals. In the air, GAS pitches you back and BRAKE
-  pitches you forward.
-- **⏸ button** — pause menu (resume, restart, settings, quit).
-
-Desktop keys: W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, Esc pause.
-
-## Physics
-
-Position-based two-wheel physics at 240 Hz with render interpolation: analogue
-ramped throttle, frame-axis lean torque (works at any bike angle — that's what
-makes backflips possible), air control, landing-impact absorption, wheelie/stoppie
-balance, spin/speed safety caps and a "paddle assist" that unsticks you if you're
-wedged at full throttle. Headless auto-driver verified: all 3 tracks finish with
-0 faults, Long Jump ~10.8 m, Hill Climb ~84 m, Flip Frenzy scores full backflips.
+Faults send you back to the last checkpoint and add +5s to your medal time.
