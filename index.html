@@ -81,8 +81,8 @@
   <div class="tbtn" id="bMenu">⏸</div>
 
   <div class="screen show" id="scrTitle">
-    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V4</div></div>
-    <button class="mi sel" data-act="career">🏁 CAREER<small>4 tracks · medals · unlocks · ghost racing</small></button>
+    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V5</div></div>
+    <button class="mi sel" data-act="career">🏁 CAREER<small>7 tracks · medals · unlocks · ghost racing</small></button>
     <button class="mi" data-act="skills">🎯 SKILL GAMES<small>Long Jump · Flip Frenzy · Hill Climb</small></button>
     <button class="mi" data-act="garage">🎨 GARAGE<small>Colours · crates · trails</small></button>
     <button class="mi" data-act="settings">⚙️ SETTINGS<small>Lean sensitivity · sound</small></button>
@@ -100,6 +100,7 @@
     <button class="mi sel" data-skill="jump">🚀 LONG JUMP<small id="jumpBest">Best: —</small></button>
     <button class="mi" data-skill="flip">🌀 FLIP FRENZY<small id="flipBest">Best: —</small></button>
     <button class="mi" data-skill="climb">⛰️ HILL CLIMB<small id="climbBest">Best: —</small></button>
+    <button class="mi" data-skill="daily">📅 DAILY CLIMB<small id="dailyBest">New hill today — set a best</small></button>
     <div class="backrow"><button class="sbtn" data-act="title">◀ BACK</button></div>
   </div>
 
@@ -119,6 +120,8 @@
     <div class="secttl">TRAIL</div>
     <div class="swrow" id="swTrail"></div>
     <div class="help" style="margin-top:6px">Locked items (coloured border) hide in crates. Duplicates refund ⚙10. Everything saves automatically.</div>
+    <div class="secttl">ACHIEVEMENTS</div>
+    <div class="help" id="achList"></div>
     <div class="backrow"><button class="sbtn" data-act="title">◀ BACK</button></div>
   </div>
 
@@ -153,6 +156,9 @@
       <b>Wheelie</b> — hold lean back on the gas. <b>Pivot turn</b> — brake + lean with the front wheel planted.<br>
       <b>Bolts &amp; crates</b> — medals pay bolts (⚙). Spend ⚙40 on a crate in the Garage for random cosmetics; EPIC+ is guaranteed within 12 opens.<br>
       <b>Ghost</b> — your best medal run races beside you as a translucent ghost (Settings).<br>
+      <b>Daily Climb</b> — one seeded hill per day; set the best you can, medals pay fresh bolts daily.<br>
+      <b>Remix</b> — Settings toggle: career tracks shuffle their logs and barrels every run. Pays bolts, never touches your records.<br>
+      <b>Achievements</b> — 8 trophies in the Garage pay bonus bolts.<br>
       <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, C checkpoint restart, K hop, Esc pause.<br>
       Tip: ease off the gas before a drop, and lean back early on climbs — momentum is everything.
     </div>
@@ -194,9 +200,10 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
-const SETTINGS = Object.assign({ sens: 1, sound: 1, flip: 0, ghost: 1, fx: 1 },
+const SETTINGS = Object.assign({ sens: 1, sound: 1, flip: 0, ghost: 1, fx: 1, remix: 0 },
                                store.get('trgp3_settings', {}), store.get('trgp4_settings', {}));
-const PROGRESS = Object.assign({ bests: {}, medals: {}, finished: {}, jump: 0, flip: 0, climb: 0, bolts: 30, earned: {}, bestAdj: {} },
+const PROGRESS = Object.assign({ bests: {}, medals: {}, finished: {}, jump: 0, flip: 0, climb: 0, bolts: 30, earned: {}, bestAdj: {},
+                                 stats: { finishes: 0, golds: 0, jumps: 0, crates: 0, flipBest: 0, climbBest: 0 }, ach: {}, daily: { date: '', best: 0 } },
                                store.get('trgp3_progress', {}), store.get('trgp4_progress', {}));
 const GARAGE = Object.assign({ frame: '#FE5000', rider: '#39406b', helm: '#FE5000', wheel: '#cfd6dd', trail: 'none', owned: {}, pity: 0 },
                              store.get('trgp3_garage', {}), store.get('trgp4_garage', {}));
@@ -214,6 +221,27 @@ function awardBolts(key, rank) {           // rank: 0 finish, 1 bronze, 2 silver
   return amt;
 }
 function boltSuffix() { return pendingBolts ? ' · ⚙ +' + pendingBolts + ' bolts' : ''; }
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dailySeed() { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+const ACHS = [
+  { id: 'fin1',    name: 'First Finish',   desc: 'Finish any career track',        bolts: 20,  test: () => PROGRESS.stats.finishes >= 1 },
+  { id: 'gold3',   name: 'Gold Rush',      desc: 'Earn 3 gold medals',             bolts: 40,  test: () => PROGRESS.stats.golds >= 3 },
+  { id: 'all7',    name: 'Completionist',  desc: 'Finish all 7 career tracks',     bolts: 100, test: () => TRACKS.every((t, i) => PROGRESS.finished[i]) },
+  { id: 'own10',   name: 'Collector',      desc: 'Own 10 crate cosmetics',         bolts: 40,  test: () => Object.keys(GARAGE.owned).length >= 10 },
+  { id: 'crate10', name: 'Crate Fiend',    desc: 'Open 10 crates',                 bolts: 30,  test: () => PROGRESS.stats.crates >= 10 },
+  { id: 'flip1k',  name: 'Flip Master',    desc: 'Score 1000+ in one Flip Frenzy', bolts: 40,  test: () => PROGRESS.stats.flipBest >= 1000 },
+  { id: 'climb80', name: 'Mountain Goat',  desc: 'Climb 80 m on Hill Climb',       bolts: 30,  test: () => PROGRESS.stats.climbBest >= 80 },
+  { id: 'jump25',  name: 'Frequent Flyer', desc: 'Land 25 long jumps',             bolts: 30,  test: () => PROGRESS.stats.jumps >= 25 },
+];
+function checkAch() {
+  const got = [];
+  for (const a of ACHS) {
+    if (!PROGRESS.ach[a.id] && a.test()) { PROGRESS.ach[a.id] = true; PROGRESS.bolts += a.bolts; got.push('🏆 ' + a.name + ' +⚙' + a.bolts); }
+  }
+  if (got.length) saveAll();
+  return got;
+}
+function achSuffix() { const g = checkAch(); return g.length ? ' · ' + g.join(' · ') : ''; }
 
 /* ---------- tiny synth ---------- */
 let AC = null;
@@ -286,6 +314,33 @@ const TRACKS = [
     mud:[{x0:1620, x1:1780},{x0:5900, x1:6060}], shelves:[{x0:2060, x1:2280, y:258}],
     movers:[{x:4430, y:318, w:130, amp:10, per:2.8}],
     pars:{ gold:23, silver:31, bronze:46 } },
+  { name:'DEEP QUARRY', sub:'Twin seesaws, log stairs, mud climbs — the quarry bites back',
+    sky:['#2e2140','#5e3350','#d97a44'], hill:'rgba(24,14,34,0.6)', finish:8400,
+    cps:[1500, 3100, 4700, 6300, 7600],
+    pts:[[-300,300],[320,300],[440,258],[560,300],[700,322],[830,276],[960,300],[1100,300],[1180,238],[1360,238],[1460,300],[1620,306],[1760,258],[1880,210],[2000,204],[2140,258],[2300,300],[2460,300],[2600,268],[2740,300],[2900,300],[3060,300],[3220,282],[3360,300],[3520,300],[3680,246],[3840,240],[4000,300],[4180,300],[4340,272],[4460,182],[4540,170],[4680,238],[4840,300],[5020,300],[5180,284],[5270,300],[5360,284],[5450,300],[5620,300],[5780,262],[5940,300],[6120,300],[6280,274],[6440,300],[6600,300],[6760,252],[6920,246],[7080,300],[7260,300],[7420,268],[7580,300],[7760,282],[7920,300],[8400,300],[8800,300]],
+    seesaws:[{x:2900, y:288, len:160},{x:3060, y:288, len:160}], barrels:[{x:2480},{x:4960},{x:5020},{x:5080}], tires:[{x0:6560, x1:6740}],
+    logs:[{x:1050, r:17, s:'pipe'},{x:3560, r:12, s:'log'},{x:3625, r:13, s:'log'},{x:6360, r:13, s:'tyre'}],
+    mud:[{x0:1560, x1:1740},{x0:7160, x1:7340}], shelves:[{x0:4880, x1:5140, y:256}],
+    movers:[{x:5660, y:250, w:120, amp:16, per:2.6}],
+    pars:{ gold:31, silver:42, bronze:64 } },
+  { name:'MIDNIGHT FOUNDRY', sub:'Seesaw-to-beam combos, a bridged pit, twin walls',
+    sky:['#0a1420','#122838','#7a3a20'], hill:'rgba(4,10,16,0.65)', finish:10200,
+    cps:[1700, 3400, 5100, 6800, 8500],
+    pts:[[-300,300],[300,300],[430,254],[560,300],[700,324],[840,300],[980,300],[1090,246],[1250,246],[1370,300],[1540,300],[1680,266],[1820,300],[1980,300],[2120,252],[2260,300],[2420,300],[2580,278],[2720,300],[2880,300],[3040,238],[3200,232],[3360,300],[3540,300],[3700,266],[3840,300],[4000,300],[4140,240],[4300,234],[4460,300],[4640,300],[4800,272],[4920,180],[5000,168],[5140,236],[5300,300],[5480,300],[5640,282],[5730,300],[5820,282],[5910,300],[6080,300],[6240,258],[6400,300],[6580,300],[6640,352],[6720,352],[6800,300],[6940,246],[7100,240],[7260,300],[7440,270],[7600,300],[7760,300],[7920,262],[8080,300],[8240,300],[8400,244],[8560,238],[8720,300],[8900,300],[9060,272],[9220,300],[9400,300],[9580,276],[9740,300],[10200,300],[10600,300]],
+    seesaws:[{x:3460, y:288, len:160}], barrels:[{x:2540},{x:9200},{x:9280}], tires:[{x0:7740, x1:7900}],
+    logs:[{x:700, r:16, s:'pipe'},{x:2940, r:12, s:'log'},{x:2995, r:13, s:'log'},{x:5680, r:13, s:'tyre'},{x:8260, r:15, s:'log'}],
+    mud:[{x0:1600, x1:1760},{x0:4520, x1:4660},{x0:7300, x1:7460}], shelves:[{x0:3620, x1:3860, y:254},{x0:9120, x1:9380, y:258}],
+    movers:[{x:6680, y:316, w:140, amp:10, per:2.8}],
+    pars:{ gold:41, silver:55, bronze:84 } },
+  { name:'APEX RIDGE', sub:'The finale — triple seesaws, two walls, everything at once',
+    sky:['#160f2e','#33204e','#a03a50'], hill:'rgba(10,6,24,0.65)', finish:12400,
+    cps:[1800, 3600, 5400, 7200, 9000, 10800],
+    pts:[[-300,300],[300,300],[420,246],[540,300],[690,330],[830,282],[970,300],[1130,300],[1210,230],[1390,230],[1490,300],[1660,308],[1800,254],[1920,204],[2040,196],[2180,252],[2340,302],[2520,300],[2660,264],[2800,300],[2960,300],[3120,300],[3300,282],[3460,300],[3620,300],[3780,240],[3940,234],[4100,300],[4280,300],[4440,268],[4560,176],[4640,164],[4780,234],[4940,300],[5120,300],[5280,280],[5370,300],[5460,280],[5550,300],[5720,300],[5880,256],[6040,300],[6220,300],[6380,270],[6540,300],[6700,300],[6860,238],[7020,232],[7180,300],[7240,354],[7320,354],[7440,300],[7600,264],[7760,300],[7940,300],[8100,248],[8260,242],[8420,300],[8600,300],[8760,270],[8880,178],[8960,166],[9100,236],[9260,300],[9440,300],[9600,274],[9760,300],[9940,300],[10100,250],[10260,244],[10420,300],[10600,300],[10760,268],[10920,300],[11080,300],[11240,262],[11400,300],[11560,282],[11720,300],[12400,300],[12800,300]],
+    seesaws:[{x:2960, y:288, len:160},{x:3120, y:288, len:160},{x:3300, y:282, len:150}], barrels:[{x:2620},{x:5000},{x:5070},{x:5140},{x:11120}], tires:[{x0:4240, x1:4400},{x0:9300, x1:9480}],
+    logs:[{x:1050, r:17, s:'pipe'},{x:1720, r:12, s:'log'},{x:1775, r:13, s:'log'},{x:5740, r:14, s:'tyre'},{x:8180, r:13, s:'log'},{x:8245, r:12, s:'log'},{x:9880, r:15, s:'log'}],
+    mud:[{x0:1580, x1:1740},{x0:5560, x1:5700},{x0:10480, x1:10640}], shelves:[{x0:4940, x1:5200, y:254},{x0:11000, x1:11240, y:256}],
+    movers:[{x:6580, y:246, w:120, amp:14, per:2.4},{x:7280, y:318, w:140, amp:12, per:2.6}],
+    pars:{ gold:58, silver:78, bronze:118 } },
 ];
 const ARENAS = {
   jump: { name:'LONG JUMP', lipX:950, finish:99999, cps:[],
@@ -370,8 +425,11 @@ function makeDynamics(def) {
   shelves = (def.shelves || []).map(s => ({ x0: s.x0, x1: s.x1, y: s.y }));
   movers = (def.movers || []).map(m => ({ x0: m.x - m.w / 2, x1: m.x + m.w / 2, y: m.y, amp: m.amp, per: m.per, ph: m.ph || 0, curY: m.y }));
   mudZones = def.mud || [];
+  if (MODE && MODE.remix) {
+    for (const lg of logs) { lg.cx += Math.random() * 90 - 45; lg.cy = staticY(lg.cx) - lg.r + 4; }
+  }
   barrels = (def.barrels || []).map(b => {
-    const jx = b.x + (Math.random() * 50 - 25);
+    const jx = b.x + (MODE && MODE.remix ? Math.random() * 140 - 70 : Math.random() * 50 - 25);
     return { x: jx, y: staticY(jx) - 14, px: jx, py: staticY(jx) - 14, r: 13 };
   });
 }
@@ -659,11 +717,21 @@ function doFault() {
 }
 function climbFinish(how) {
   const dist = Math.max(0, (climbBestX - 260) / 50);
-  if (dist > PROGRESS.climb) { PROGRESS.climb = dist; saveAll(); }
+  if (dist > PROGRESS.climb) PROGRESS.climb = dist;
+  PROGRESS.stats.climbBest = Math.max(PROGRESS.stats.climbBest, dist);
   const m = dist >= 80 ? '🥇 GOLD' : dist >= 60 ? '🥈 SILVER' : dist >= 40 ? '🥉 BRONZE' : how;
   const savedClimb = PROGRESS.climb;
-  awardBolts('climb', dist >= 80 ? 3 : dist >= 60 ? 2 : dist >= 40 ? 1 : 0);
-  endRun(m + ' — ' + dist.toFixed(1) + ' metres', 'Best: ' + Math.max(savedClimb, dist).toFixed(1) + ' m · gold at 80 m' + boltSuffix());
+  let dailyNote = '';
+  if (MODE.daily) {
+    if (PROGRESS.daily.date !== todayStr()) PROGRESS.daily = { date: todayStr(), best: 0 };
+    if (dist > PROGRESS.daily.best) PROGRESS.daily.best = dist;
+    dailyNote = ' · today\'s best ' + PROGRESS.daily.best.toFixed(1) + ' m';
+    awardBolts('daily' + todayStr(), dist >= 80 ? 3 : dist >= 60 ? 2 : dist >= 40 ? 1 : 0);
+  } else {
+    awardBolts('climb', dist >= 80 ? 3 : dist >= 60 ? 2 : dist >= 40 ? 1 : 0);
+  }
+  saveAll();
+  endRun(m + ' — ' + dist.toFixed(1) + ' metres', 'Best: ' + Math.max(savedClimb, dist).toFixed(1) + ' m · gold at 80 m' + dailyNote + boltSuffix() + achSuffix());
   fanfare();
 }
 
@@ -693,17 +761,21 @@ function gameLogic(dt, th, dTh) {
       const pars = MODE.def.pars;
       const medal = adj <= pars.gold ? '🥇 GOLD' : adj <= pars.silver ? '🥈 SILVER' : adj <= pars.bronze ? '🥉 BRONZE' : 'FINISHED';
       const key = MODE.trackIdx;
-      if (!PROGRESS.bests[key] || time < PROGRESS.bests[key]) PROGRESS.bests[key] = time;
-      if (medal.indexOf('🥇') === 0) PROGRESS.medals[key] = '🥇';
-      else if (medal.indexOf('🥈') === 0 && PROGRESS.medals[key] !== '🥇') PROGRESS.medals[key] = '🥈';
-      else if (medal.indexOf('🥉') === 0 && !PROGRESS.medals[key]) PROGRESS.medals[key] = '🥉';
-      PROGRESS.finished[key] = true;
       const rank = medal.indexOf('🥇') === 0 ? 3 : medal.indexOf('🥈') === 0 ? 2 : medal.indexOf('🥉') === 0 ? 1 : 0;
-      awardBolts('track' + key, rank);
-      if (!PROGRESS.bestAdj[key] || adj < PROGRESS.bestAdj[key]) { PROGRESS.bestAdj[key] = adj; GHOSTS[key] = ghostRec; saveGhosts(); }
+      PROGRESS.stats.finishes++;
+      if (rank === 3) PROGRESS.stats.golds++;
+      if (!MODE.remix) {
+        if (!PROGRESS.bests[key] || time < PROGRESS.bests[key]) PROGRESS.bests[key] = time;
+        if (medal.indexOf('🥇') === 0) PROGRESS.medals[key] = '🥇';
+        else if (medal.indexOf('🥈') === 0 && PROGRESS.medals[key] !== '🥇') PROGRESS.medals[key] = '🥈';
+        else if (medal.indexOf('🥉') === 0 && !PROGRESS.medals[key]) PROGRESS.medals[key] = '🥉';
+        if (!PROGRESS.bestAdj[key] || adj < PROGRESS.bestAdj[key]) { PROGRESS.bestAdj[key] = adj; GHOSTS[key] = ghostRec; saveGhosts(); }
+      }
+      PROGRESS.finished[key] = true;
+      awardBolts((MODE.remix ? 'remix' : 'track') + key, rank);
       saveAll();
       endRun(medal + ' — ' + time.toFixed(2) + 's',
-             faults + ' fault' + (faults === 1 ? '' : 's') + ' · medal time ' + adj.toFixed(1) + 's (faults +5s each)' + boltSuffix());
+             faults + ' fault' + (faults === 1 ? '' : 's') + ' · medal time ' + adj.toFixed(1) + 's (faults +5s each)' + boltSuffix() + achSuffix());
       fanfare(); return;
     }
   }
@@ -722,9 +794,10 @@ function gameLogic(dt, th, dTh) {
       landedTimer += dt;
       if (landedTimer > 1.4 || speed < 18) {
         if (jumpDist > PROGRESS.jump) PROGRESS.jump = jumpDist;
+        PROGRESS.stats.jumps++;
         awardBolts('jump', jumpDist >= 11.5 ? 3 : jumpDist >= 8.5 ? 2 : jumpDist >= 5 ? 1 : 0); saveAll();
         const m = jumpDist >= 11.5 ? '🥇 GOLD' : jumpDist >= 8.5 ? '🥈 SILVER' : jumpDist >= 5 ? '🥉 BRONZE' : 'LANDED';
-        endRun(m + ' — ' + jumpDist.toFixed(1) + ' metres', 'Best: ' + Math.max(PROGRESS.jump, jumpDist).toFixed(1) + ' m · gold at 11.5 m' + boltSuffix());
+        endRun(m + ' — ' + jumpDist.toFixed(1) + ' metres', 'Best: ' + Math.max(PROGRESS.jump, jumpDist).toFixed(1) + ' m · gold at 11.5 m' + boltSuffix() + achSuffix());
         fanfare(); return;
       }
     }
@@ -753,8 +826,9 @@ function gameLogic(dt, th, dTh) {
       if (flipTimeLeft <= 0) {
         flipTimeLeft = 0;
         if (flipScore > PROGRESS.flip) PROGRESS.flip = flipScore;
+        PROGRESS.stats.flipBest = Math.max(PROGRESS.stats.flipBest, flipScore);
         awardBolts('flip', flipScore >= 1500 ? 3 : flipScore >= 800 ? 2 : flipScore >= 350 ? 1 : 0); saveAll();
-        endRun('TIME! — ' + flipScore + ' pts', 'Best: ' + Math.max(PROGRESS.flip, flipScore) + ' pts · gold at 1500 pts' + boltSuffix());
+        endRun('TIME! — ' + flipScore + ' pts', 'Best: ' + Math.max(PROGRESS.flip, flipScore) + ' pts · gold at 1500 pts' + boltSuffix() + achSuffix());
         fanfare(); return;
       }
     }
@@ -1132,19 +1206,23 @@ function startMode(kind, idx) {
     if (kind === 'climb') {
       def = Object.assign({}, ARENAS.climb, {});
       pts = makeClimbPts((Date.now() % 90000) + 7);
+    } else if (kind === 'daily') {
+      def = Object.assign({}, ARENAS.climb, { name: 'DAILY CLIMB' });
+      pts = makeClimbPts(dailySeed());
     } else { def = ARENAS[kind]; pts = def.pts; }
   }
-  MODE = { kind, def, pts, sky, hill, trackIdx: idx };
+  MODE = { kind: kind === 'daily' ? 'climb' : kind, def, pts, sky, hill, trackIdx: idx, daily: kind === 'daily', remix: kind === 'track' && !!SETTINGS.remix };
   inPlay = true; paused = false; runOver = false;
   hideResult(); hideAllScreens();
   $('hud').style.display = 'flex'; $('leanBar').style.display = 'block';
   for (const id of ['bGas','bBrake','bMenu']) $(id).style.display = 'flex';
-  $('hName').textContent = def.name;
+  $('hName').textContent = def.name + (MODE.remix ? ' · REMIX' : '');
   if ($('hPace')) $('hPace').textContent = '';
   $('hLabL').textContent = 'TIME'; $('hLabR').textContent = 'FAULTS'; $('hFaults').textContent = '0';
   camX = 60; camY = staticY(120) - 80;
   resetRun(true);
   if (kind === 'track') showMsg(def.name, def.sub);
+  else if (MODE.daily) showMsg('DAILY CLIMB', 'same hill all day — set a best');
 }
 function quitToTitle() {
   inPlay = false; paused = false; engineStop(); hideResult();
@@ -1157,7 +1235,7 @@ function restartRun() {
   if (!MODE) return;
   hideResult(); hideAllScreens();
   paused = false; runOver = false;
-  if (MODE.kind === 'climb') { MODE.pts = makeClimbPts((Date.now() % 90000) + 7); }
+  if (MODE.kind === 'climb') { MODE.pts = makeClimbPts(MODE.daily ? dailySeed() : (Date.now() % 90000) + 7); }
   resetRun(true);
 }
 function togglePause(on) {
@@ -1187,6 +1265,7 @@ function refreshSkillBests() {
   if ($('jumpBest')) $('jumpBest').textContent = 'Best: ' + (PROGRESS.jump ? PROGRESS.jump.toFixed(1) + ' m' : '—');
   if ($('flipBest')) $('flipBest').textContent = 'Best: ' + (PROGRESS.flip ? PROGRESS.flip + ' pts' : '—');
   if ($('climbBest')) $('climbBest').textContent = 'Best: ' + (PROGRESS.climb ? PROGRESS.climb.toFixed(1) + ' m' : '—');
+  if ($('dailyBest')) $('dailyBest').textContent = PROGRESS.daily.date === todayStr() && PROGRESS.daily.best ? 'Today: ' + PROGRESS.daily.best.toFixed(1) + ' m' : 'New hill today — set a best';
 }
 const RARITY = ['COMMON','RARE','EPIC','LEGENDARY'];
 const RARITY_C = ['#9fb4c8','#3fa9f5','#b26bff','#ffb52e'];
@@ -1223,6 +1302,7 @@ const CRATE_COST = 40;
 function openCrate() {
   if (PROGRESS.bolts < CRATE_COST) { crateMsg('Not enough bolts — medals earn bolts (need ⚙40)', '#e33f3f'); beep(160, 0.12, 'square', 0.05); return; }
   PROGRESS.bolts -= CRATE_COST;
+  PROGRESS.stats.crates++;
   let r;
   if (GARAGE.pity >= 11) r = Math.random() < 0.75 ? 2 : 3;
   else { const roll = Math.random() * 100; r = roll < 58 ? 0 : roll < 86 ? 1 : roll < 97 ? 2 : 3; }
@@ -1231,9 +1311,15 @@ function openCrate() {
   const item = cands[Math.floor(Math.random() * cands.length)];
   if (GARAGE.owned[item.name]) { PROGRESS.bolts += 10; crateMsg('DUPLICATE — ' + item.name + ' (' + RARITY[r] + ') · refunded ⚙10', RARITY_C[r]); }
   else { GARAGE.owned[item.name] = true; crateMsg(RARITY[r] + '! ' + item.name + ' — ' + item.cat + ' unlocked, tap to equip', RARITY_C[r]); }
+  const ach = checkAch();
+  if (ach.length) crateMsg(($('crateMsg') ? $('crateMsg').textContent : '') + ' · ' + ach.join(' · '), '#ffd23f');
   saveAll(); markGarage();
   beep(r >= 2 ? 1320 : 880, 0.12, 'square', 0.05);
   if (r >= 2) setTimeout(() => beep(1760, 0.16, 'square', 0.05), 110);
+}
+function buildAchList() {
+  const el = $('achList'); if (!el) return;
+  el.innerHTML = ACHS.map(a => (PROGRESS.ach[a.id] ? '✓ ' : '🔒 ') + '<b>' + a.name + '</b> — ' + a.desc + ' (+⚙' + a.bolts + ')').join('<br>');
 }
 function buildItems(rowId, cat) {
   const row = $(rowId); if (!row) return;
@@ -1258,6 +1344,7 @@ function markGarage() {
   buildItems('swHelm', 'helm');
   buildItems('swWheel', 'wheel');
   buildItems('swTrail', 'trail');
+  buildAchList();
   if ($('boltCount')) $('boltCount').textContent = PROGRESS.bolts;
   if ($('pityHint')) $('pityHint').textContent = 'EPIC or better guaranteed within ' + Math.max(1, 12 - GARAGE.pity) + ' opens';
 }
@@ -1270,6 +1357,8 @@ function markSettings() {
   if (gh) gh.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.ghost === (SETTINGS.ghost === 0 ? 0 : 1)));
   const fx = $('fxOpt');
   if (fx) fx.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.fx === (SETTINGS.fx === 0 ? 0 : 1)));
+  const rm = $('remixOpt');
+  if (rm) rm.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('sel', +b.dataset.remix === (SETTINGS.remix || 0)));
 }
 (function addExtraSettingsRows() {
   const scr = $('scrSettings');
@@ -1278,6 +1367,7 @@ function markSettings() {
     ['WHEEL DIRECTION', 'flipOpt', '<button class="sbtn" data-flip="0">STANDARD</button><button class="sbtn" data-flip="1">FLIPPED</button>', 'If scrolling feels backwards on your R1, flip it.'],
     ['BEST-RUN GHOST', 'ghostOpt', '<button class="sbtn" data-ghost="1">ON</button><button class="sbtn" data-ghost="0">OFF</button>', 'Race a translucent copy of your best medal run.'],
     ['EFFECTS', 'fxOpt', '<button class="sbtn" data-fx="1">ON</button><button class="sbtn" data-fx="0">OFF</button>', 'Screen shake and cosmetic trails.'],
+    ['REMIX OBSTACLES', 'remixOpt', '<button class="sbtn" data-remix="1">ON</button><button class="sbtn" data-remix="0">OFF</button>', 'Career tracks shuffle their logs and barrels every run. Remix runs pay bolts but never touch your records.'],
   ];
   for (const [label, id, html, help] of rows) {
     const ttl = document.createElement('div'); ttl.className = 'secttl'; ttl.textContent = label;
@@ -1292,7 +1382,7 @@ function markSettings() {
 /* ---------- global click routing ---------- */
 document.addEventListener('click', e => {
   audioInit();
-  const el = e.target.closest('[data-act],[data-skill],[data-sens],[data-snd],[data-flip],[data-ghost],[data-fx]');
+  const el = e.target.closest('[data-act],[data-skill],[data-sens],[data-snd],[data-flip],[data-ghost],[data-fx],[data-remix]');
   if (!el) return;
   const act = el.dataset.act;
   if (el.dataset.sens !== undefined) { SETTINGS.sens = +el.dataset.sens; saveAll(); markSettings(); return; }
@@ -1300,6 +1390,7 @@ document.addEventListener('click', e => {
   if (el.dataset.flip !== undefined) { SETTINGS.flip = +el.dataset.flip; saveAll(); markSettings(); return; }
   if (el.dataset.ghost !== undefined) { SETTINGS.ghost = +el.dataset.ghost; saveAll(); markSettings(); return; }
   if (el.dataset.fx !== undefined) { SETTINGS.fx = +el.dataset.fx; saveAll(); markSettings(); return; }
+  if (el.dataset.remix !== undefined) { SETTINGS.remix = +el.dataset.remix; saveAll(); markSettings(); return; }
   if (el.dataset.skill) { startMode(el.dataset.skill); return; }
   switch (act) {
     case 'career': showScreen('scrTracks'); break;
@@ -1316,7 +1407,7 @@ document.addEventListener('click', e => {
       break;
     case 'quit': quitToTitle(); break;
     case 'wipe':
-      if (el.dataset.arm) { PROGRESS.bests = {}; PROGRESS.medals = {}; PROGRESS.finished = {}; PROGRESS.jump = 0; PROGRESS.flip = 0; PROGRESS.climb = 0; PROGRESS.bolts = 30; PROGRESS.earned = {}; PROGRESS.bestAdj = {}; for (const k in GHOSTS) delete GHOSTS[k]; saveGhosts(); saveAll(); el.textContent = 'RESET PROGRESS'; delete el.dataset.arm; buildTrackList(); refreshSkillBests(); markGarage(); }
+      if (el.dataset.arm) { PROGRESS.bests = {}; PROGRESS.medals = {}; PROGRESS.finished = {}; PROGRESS.jump = 0; PROGRESS.flip = 0; PROGRESS.climb = 0; PROGRESS.bolts = 30; PROGRESS.earned = {}; PROGRESS.bestAdj = {}; PROGRESS.stats = { finishes: 0, golds: 0, jumps: 0, crates: 0, flipBest: 0, climbBest: 0 }; PROGRESS.ach = {}; PROGRESS.daily = { date: '', best: 0 }; for (const k in GHOSTS) delete GHOSTS[k]; saveGhosts(); saveAll(); el.textContent = 'RESET PROGRESS'; delete el.dataset.arm; buildTrackList(); refreshSkillBests(); markGarage(); }
       else { el.dataset.arm = '1'; el.textContent = 'TAP AGAIN TO CONFIRM'; }
       break;
   }
@@ -1379,7 +1470,8 @@ window.__game = {
              climbM: Math.max(0, (climbBestX - 260) / 50),
              seesawAng: seesaws.map(s => +s.ang.toFixed(2)), barrelsX: barrels.map(b => Math.round(b.x)),
              bolts: PROGRESS.bolts, pity: GARAGE.pity, ownedCount: Object.keys(GARAGE.owned).length,
-             ghostLen: (GHOSTS[MODE && MODE.trackIdx] || []).length, trail: GARAGE.trail }; },
+             ghostLen: (GHOSTS[MODE && MODE.trackIdx] || []).length, trail: GARAGE.trail,
+             dailyBest: PROGRESS.daily.best, achCount: Object.keys(PROGRESS.ach).length, finishes: PROGRESS.stats.finishes }; },
   setAnalog: (thr, lean) => { ANALOG.throttle = thr; ANALOG.lean = lean; },
   setInput: (code, on) => { const p = KEYMAP[code]; if (p) input[p] = !!on; },
   wheelTick: d => addWheelTick(d),
@@ -1392,6 +1484,7 @@ window.__game = {
   restart: () => restartRun(),
 };
 function fanfare() { beep(660, 0.1, 'square', 0.05); setTimeout(() => beep(880, 0.1, 'square', 0.05), 100); setTimeout(() => beep(1320, 0.18, 'square', 0.05), 200); }
+
 </script>
 </body>
 </html>
