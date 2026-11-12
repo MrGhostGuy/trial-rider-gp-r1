@@ -34,10 +34,12 @@
   .screen { position:absolute; inset:0; display:none; flex-direction:column; z-index:5;
             background:linear-gradient(180deg, rgba(16,20,42,.93), rgba(24,18,44,.96)); padding:10px 10px 8px; }
   .screen.show { display:flex; }
-  .logo { text-align:center; margin:2px 0 8px; }
-  .logo .t1 { font-size:23px; font-weight:900; letter-spacing:1px; color:#fff; }
+  .logo { text-align:center; margin:0 0 6px; }
+  .logo .t1 { font-size:21px; font-weight:900; letter-spacing:1px; color:#fff; }
   .logo .t1 span { color:#FE5000; }
   .logo .t2 { font-size:9px; letter-spacing:3px; color:#ffb27a; font-weight:700; }
+  #scrTitle .mi { padding:8px 10px; }
+  #scrTitle .mi small { display:none; }
   .mi { display:block; width:100%; text-align:left; background:rgba(255,255,255,.07); color:#fff; border:2px solid rgba(255,255,255,.14);
         border-radius:9px; padding:8px 10px; margin:0 0 6px; font-size:13px; font-weight:700; cursor:pointer; }
   .mi small { display:block; font-size:9.5px; font-weight:600; color:#b9c0e8; margin-top:2px; }
@@ -49,7 +51,7 @@
           padding:7px 4px; font-size:11.5px; font-weight:800; cursor:pointer; text-align:center; }
   .sbtn.sel { border-color:#FE5000; background:rgba(254,80,0,.18); }
   .sbtn.primary { background:#FE5000; border-color:#FE5000; }
-  .secttl { font-size:10px; letter-spacing:2px; color:#ffb27a; font-weight:800; margin:6px 0 5px; }
+  .secttl { font-size:10px; letter-spacing:2px; color:#ffb27a; font-weight:800; margin:4px 0 4px; }
   .swrow { display:flex; gap:6px; margin-bottom:4px; }
   .sw { width:30px; height:30px; border-radius:8px; border:3px solid rgba(255,255,255,.18); cursor:pointer; }
   .sw.sel { border-color:#fff; transform:scale(1.08); }
@@ -60,7 +62,7 @@
   #resultCard { position:absolute; left:14px; right:14px; top:56px; z-index:6; display:none; text-align:center;
                  background:rgba(14,17,36,.92); border:2px solid #FE5000; border-radius:12px; padding:12px 10px; }
   #resultCard .big { font-size:21px; font-weight:900; }
-  #resultCard .sub { font-size:11px; color:#cdd4f5; margin:4px 0 8px; }
+  #resultCard .sub { font-size:11px; color:#cdd4f5; margin:3px 0 5px; }
 </style>
 </head>
 <body>
@@ -119,7 +121,7 @@
       <button class="sbtn" data-sens="2">HIGH</button>
       <button class="sbtn" data-sens="3">MAX</button>
     </div>
-    <div class="help" style="margin:4px 0 8px">How hard each scroll-wheel tick leans you. Higher = fewer scrolls, twitchier.</div>
+    <div class="help" style="margin:3px 0 5px">How hard each scroll-wheel tick leans you. Higher = fewer scrolls, twitchier.</div>
     <div class="secttl">SOUND</div>
     <div class="opt" id="sndOpt">
       <button class="sbtn" data-snd="1">ON</button>
@@ -1022,7 +1024,7 @@ function markSettings() {
   const ttl = document.createElement('div'); ttl.className = 'secttl'; ttl.textContent = 'WHEEL DIRECTION';
   const opt = document.createElement('div'); opt.className = 'opt'; opt.id = 'flipOpt';
   opt.innerHTML = '<button class="sbtn" data-flip="0">STANDARD</button><button class="sbtn" data-flip="1">FLIPPED</button>';
-  const help = document.createElement('div'); help.className = 'help'; help.style.margin = '4px 0 8px';
+  const help = document.createElement('div'); help.className = 'help'; help.style.margin = '3px 0 5px';
   help.textContent = 'If scrolling feels backwards on your R1, flip it.';
   const back = scr.querySelector('.backrow');
   scr.insertBefore(ttl, back); scr.insertBefore(opt, back); scr.insertBefore(help, back);
