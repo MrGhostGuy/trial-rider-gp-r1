@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trial Rider GP — R1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; background:#0d1020; overflow:hidden; }
+  body { display:flex; align-items:center; justify-content:center; font-family:'Segoe UI', system-ui, sans-serif; }
+  #wrap { position:relative; width:min(100vw, calc(100vh * 240 / 282)); aspect-ratio:240/282; }
+  canvas { width:100%; height:100%; display:block; border-radius:6px; }
+  #hud { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between;
+         padding:5px 7px; color:#fff; font-size:11px; font-weight:700; letter-spacing:.4px;
+         text-shadow:0 1px 3px rgba(0,0,0,.8); pointer-events:none; }
+  #hud .lab { color:#ffb27a; font-size:8px; display:block; letter-spacing:1px; }
+  #hud .val { font-size:13px; font-variant-numeric:tabular-nums; }
+  #msg { position:absolute; top:34%; left:0; right:0; text-align:center; color:#fff; font-size:19px;
+         font-weight:800; text-shadow:0 2px 8px rgba(0,0,0,.85); pointer-events:none; opacity:0; transition:opacity .18s; padding:0 10px; }
+  #msg small { display:block; font-size:11px; font-weight:600; color:#ffd9bd; margin-top:4px; }
+  .btn { position:absolute; width:52px; height:52px; border-radius:50%; border:2px solid rgba(255,255,255,.35);
+         background:rgba(20,24,44,.45); color:#fff; font-size:10px; font-weight:800; letter-spacing:.5px;
+         display:flex; align-items:center; justify-content:center; user-select:none; touch-action:none; }
+  .btn.on { background:rgba(254,80,0,.75); border-color:#ffb27a; }
+  #bLeanL { left:6px; bottom:64px; font-size:17px; }
+  #bLeanR { left:64px; bottom:64px; font-size:17px; }
+  #bBrake { right:64px; bottom:8px; }
+  #bGas   { right:6px;  bottom:8px; }
+  #bLeanB { left:6px; bottom:8px; font-size:9px; }
+  #bRst   { right:6px; top:30px; width:30px; height:30px; font-size:13px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv" width="480" height="564"></canvas>
+  <div id="hud">
+    <div><span class="lab">TIME</span><span class="val" id="hTime">0.00</span></div>
+    <div style="text-align:center"><span class="lab">TRIAL RIDER GP</span><span class="val" id="hCp">START</span></div>
+    <div style="text-align:right"><span class="lab">FAULTS</span><span class="val" id="hFaults">0</span></div>
+  </div>
+  <div id="msg"></div>
+  <div class="btn" id="bLeanL">◀</div>
+  <div class="btn" id="bLeanR">▶</div>
+  <div class="btn" id="bLeanB">LEAN<br>BACK</div>
+  <div class="btn" id="bBrake">BRAKE</div>
+  <div class="btn" id="bGas">GAS</div>
+  <div class="btn" id="bRst">↺</div>
+</div>
+<script>
+'use strict';
+/* ============ Trial Rider GP — R1 edition ============
+   Feel rebuild v2: position-based two-wheel physics (Verlet particles +
+   frame constraint + circle/terrain projection) at 240 Hz substeps with
+   render interpolation, analog ramped throttle, air control, smoothed
+   camera with velocity lookahead. Portrait 240x282 for the R1. */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const VW = 480, VH = 564;
+const WORLD_H = 336;
+
+/* ---------- terrain: Catmull-Rom heightfield ---------- */
+const PTS = [
+  [-300,300],[300,300],[420,266],[540,300],[680,320],[800,280],[920,300],
+  [1080,300],[1160,236],[1330,236],[1420,300],[1560,324],[1700,300],
+  [1840,292],[1960,234],[2035,212],[2160,268],[2300,308],[2440,300],
+  [2560,283],[2650,300],[2740,283],[2830,300],[2920,283],[3010,300],
+  [3180,292],[3380,236],[3560,176],[3740,148],[3900,148],[3980,146],[4120,238],[4280,300],
+  [4360,270],[4520,300],[4680,280],[4840,300],[5000,300],[5800,300]
+];
+const FINISH_X = 5000;
+const CHECKPOINTS = [1300, 2350, 3300, 4480];
+function groundY(x) {
+  if (x <= PTS[0][0]) return PTS[0][1];
+  if (x >= PTS[PTS.length-1][0]) return PTS[PTS.length-1][1];
+  let i = 0;
+  while (i < PTS.length - 2 && x > PTS[i+1][0]) i++;
+  const p0 = PTS[Math.max(0,i-1)], p1 = PTS[i], p2 = PTS[i+1], p3 = PTS[Math.min(PTS.length-1,i+2)];
+  const t = (x - p1[0]) / (p2[0] - p1[0]), t2 = t*t, t3 = t2*t;
+  return 0.5 * ((2*p1[1]) + (-p0[1]+p2[1])*t + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2 + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
+}
+function groundSlope(x) { return (groundY(x+3) - groundY(x-3)) / 6; }
+function groundNormal(x) {
+  const s = groundSlope(x), inv = 1 / Math.hypot(s, 1);
+  return { nx:-s*inv, ny:-inv, tx:inv, ty:s*inv };
+}
+
+/* ---------- bike: two wheel particles + rigid frame ---------- */
+const G = 2300, WHEEL_R = 15, WB = 56;         // gravity, wheel radius, wheelbase
+const DRIVE = 1500, LEAN_FORCE = 2600;
+let rear, front;                                // {x,y,px,py}
+let thrSm = 0, leanSm = 0;
+let faults = 0, time = 0, started = false, finished = false, cpIndex = 0, lastCp = 0;
+let wheelSpin = 0, prevSnap = null;
+
+function spawnAt(x) {
+  const y = groundY(x);
+  rear  = { x:x - WB/2, y:y - WHEEL_R - 26, px:x - WB/2, py:y - WHEEL_R - 26 };
+  front = { x:x + WB/2, y:y - WHEEL_R - 26, px:x + WB/2, py:y - WHEEL_R - 26 };
+  thrSm = 0; leanSm = 0;
+}
+function reset(full) {
+  spawnAt(full ? 30 : lastCp + 30);
+  if (full) { faults = 0; time = 0; started = false; finished = false; cpIndex = 0; lastCp = 0;
+    document.getElementById('hCp').textContent = 'START';
+    document.getElementById('hFaults').textContent = '0'; }
+  prevSnap = snap();
+}
+function midX() { return (rear.x + front.x) / 2; }
+function midY() { return (rear.y + front.y) / 2; }
+function frameAngle() { return Math.atan2(front.y - rear.y, front.x - rear.x); }
+function velOf(w, dt) { return { x:(w.x - w.px) / dt, y:(w.y - w.py) / dt }; }
+function snap() {
+  return { rx:rear.x, ry:rear.y, fx:front.x, fy:front.y,
+           mx:midX(), my:midY(), th:frameAngle() };
+}
+
+/* ---------- input ---------- */
+const input = { gas:false, brake:false, leanL:false, leanR:false, leanB:false };
+let wheelLean = 0;
+const ANALOG = { throttle:null, lean:null };
+function leanTarget() {
+  if (ANALOG.lean !== null) return ANALOG.lean;
+  let l = 0;
+  if (input.leanL || input.leanB) l -= 1;
+  if (input.leanR) l += 1;
+  return Math.max(-1, Math.min(1, l + wheelLean));
+}
+function throttleTarget() {
+  if (ANALOG.throttle !== null) return ANALOG.throttle;
+  return input.gas ? 1 : 0;
+}
+/* ---------- physics (position-based, 240 Hz substeps) ---------- */
+const SUB = 1/240;
+let anyContact = false, rearContact = false, prevTh = 0, angVel = 0;
+function physicsStep(dt) {
+  const thrT = throttleTarget();
+  const rate = thrT > thrSm ? 3.4 : 5.5;
+  thrSm += Math.max(-rate*dt, Math.min(rate*dt, thrT - thrSm));
+  const lnT = leanTarget();
+  leanSm += Math.max(-7*dt, Math.min(7*dt, lnT - leanSm));
+
+  const groundedPre = (rear.y + WHEEL_R > groundY(rear.x) - 2) || (front.y + WHEEL_R > groundY(front.x) - 2);
+  // pitch couple: lean input, plus Trials-style air control
+  let couple = leanSm * (groundedPre ? 0.45 : 1);
+  if (!groundedPre) {
+    couple += -thrSm * 0.28;              // gas in the air pitches you back (gently)
+    if (input.brake) couple += 0.5;       // brake in the air pitches you forward
+    couple += Math.max(-0.6, Math.min(0.6, -angVel * 0.30)); // air rotational damping
+  }
+  couple = Math.max(-1.3, Math.min(1.3, couple));
+
+  // integrate both wheels (Verlet)
+  const wheels = [ { w:rear, isRear:true }, { w:front, isRear:false } ];
+  for (const { w, isRear } of wheels) {
+    let ax = 0, ay = G + (isRear ? -couple : couple) * LEAN_FORCE;
+    let dx = (w.x - w.px) * Math.exp(-0.30 * dt);
+    let dy = (w.y - w.py) * Math.exp(-0.02 * dt);
+    w.px = w.x; w.py = w.y;
+    w.x += dx + ax * dt * dt;
+    w.y += dy + ay * dt * dt;
+  }
+
+  // constraint iterations
+  anyContact = false; rearContact = false;
+  for (let it = 0; it < 3; it++) {
+    // rigid frame: fixed wheelbase
+    let dx = front.x - rear.x, dy = front.y - rear.y;
+    let d = Math.hypot(dx, dy) || 0.0001;
+    let diff = (d - WB) / d * 0.5;
+    rear.x += dx * diff; rear.y += dy * diff;
+    front.x -= dx * diff; front.y -= dy * diff;
+    // belly clearance over crests
+    const mx = midX(), my = midY(), gyM = groundY(mx);
+    if (my > gyM - 15) { const push = my - (gyM - 15); rear.y -= push; front.y -= push; }
+    // wheel vs terrain
+    for (const { w, isRear } of wheels) {
+      const gy = groundY(w.x), pen = (w.y + WHEEL_R) - gy;
+      if (pen > 0) {
+        const n = groundNormal(w.x);
+        w.x += n.nx * pen; w.y += n.ny * pen;
+        // absorb most of the correction into the previous position too, so a
+        // hard landing thuds instead of trampolining back off the ground
+        w.px += n.nx * pen * 0.85; w.py += n.ny * pen * 0.85;
+        if (isRear) rearContact = true; anyContact = true;
+        if (it === 2) {
+          // velocity shaping on the last iteration: kill inward normal
+          // velocity, keep tangential with grip, add drive / brake
+          let vx = w.x - w.px, vy = w.y - w.py;
+          let vn = vx * n.nx + vy * n.ny;
+          let vt = vx * n.tx + vy * n.ty;
+          if (vn < 0) vn = 0;
+          vt *= (1 - 0.3 * dt);
+          if (isRear && thrSm > 0.01 && vt / dt < 440) vt += thrSm * DRIVE * dt * dt;
+          if (input.brake) {
+            vt *= (1 - 9 * dt);
+            if (Math.abs(vt) < 22 * dt && thrSm === 0) vt -= 330 * dt * dt; // reverse
+          }
+          w.px = w.x - (n.tx * vt + n.nx * vn);
+          w.py = w.y - (n.ty * vt + n.ny * vn);
+          if (isRear) wheelSpin += (vt / dt) / WHEEL_R * dt;
+        }
+      }
+    }
+  }
+
+  // speed governor: keep the bike in the human-playable band
+  {
+    const rv = velOf(rear, dt), fv = velOf(front, dt);
+    const mvx = (rv.x + fv.x) / 2, MAXV = 470;
+    if (Math.abs(mvx) > MAXV) {
+      const cut = (Math.abs(mvx) - MAXV) * Math.sign(mvx) * dt;
+      rear.px += cut; front.px += cut;
+    }
+  }
+
+  /* game logic */
+  const th = frameAngle();
+  let dTh = th - prevTh;
+  if (dTh > Math.PI) dTh -= Math.PI * 2;
+  if (dTh < -Math.PI) dTh += Math.PI * 2;
+  angVel = dTh / dt; prevTh = th;
+  if (!finished) {
+    if ((input.gas || ANALOG.throttle) && !started) started = true;
+    if (started) time += dt;
+    const x = midX();
+    while (cpIndex < CHECKPOINTS.length && x > CHECKPOINTS[cpIndex]) {
+      lastCp = CHECKPOINTS[cpIndex]; cpIndex++;
+      showMsg('CHECKPOINT', '');
+      document.getElementById('hCp').textContent = 'CP ' + cpIndex + '/' + CHECKPOINTS.length;
+    }
+    if (x >= FINISH_X) {
+      finished = true;
+      const best = parseFloat(localStorage.getItem('trgp_r1_best') || '0');
+      if (!best || time < best) localStorage.setItem('trgp_r1_best', String(time));
+      showMsg('FINISH! ' + time.toFixed(2) + 's', faults + ' fault' + (faults === 1 ? '' : 's') + ' — tap ↺ to ride again');
+    }
+    const cos = Math.cos(th), sin = Math.sin(th);
+    const hx = midX() + cos * 2 - sin * -36, hy = midY() + sin * 2 + cos * -36;
+    if (hy >= groundY(hx) - 2 || (anyContact && Math.abs(th) > 2.55)) {
+      faults++; document.getElementById('hFaults').textContent = faults;
+      showMsg('FAULT!', 'back to the last checkpoint');
+      const kT = time, kF = faults, kC = cpIndex, kL = lastCp, kS = started;
+      reset(false); time = kT; faults = kF; cpIndex = kC; lastCp = kL; started = kS;
+    }
+  }
+}
+
+/* ---------- UI helpers ---------- */
+let msgTimer = 0;
+function showMsg(t, sub) {
+  const m = document.getElementById('msg');
+  m.innerHTML = t + (sub ? '<small>' + sub + '</small>' : '');
+  m.style.opacity = 1;
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { m.style.opacity = 0; }, 1500);
+}
+
+/* ---------- input wiring ---------- */
+function bindBtn(id, prop) {
+  const el = document.getElementById(id);
+  const on = e => { e.preventDefault(); input[prop] = true; el.classList.add('on'); };
+  const off = e => { e.preventDefault(); input[prop] = false; el.classList.remove('on'); };
+  el.addEventListener('pointerdown', on);
+  el.addEventListener('pointerup', off);
+  el.addEventListener('pointerleave', off);
+  el.addEventListener('pointercancel', off);
+}
+bindBtn('bGas', 'gas'); bindBtn('bBrake', 'brake');
+bindBtn('bLeanL', 'leanL'); bindBtn('bLeanR', 'leanR'); bindBtn('bLeanB', 'leanB');
+document.getElementById('bRst').addEventListener('pointerdown', e => { e.preventDefault(); reset(finished); });
+const KEYMAP = { ArrowUp:'gas', KeyW:'gas', Space:'gas', ArrowDown:'brake', KeyS:'brake',
+                 ArrowLeft:'leanL', KeyA:'leanL', ArrowRight:'leanR', KeyD:'leanR', KeyQ:'leanB' };
+addEventListener('keydown', e => {
+  if (e.code === 'KeyR') { reset(finished); return; }
+  const p = KEYMAP[e.code]; if (p) { input[p] = true; e.preventDefault(); }
+});
+addEventListener('keyup', e => { const p = KEYMAP[e.code]; if (p) input[p] = false; });
+/* ---------- camera + render ---------- */
+let camX = 0, camY = 200, acc = 0, lastTs = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!lastTs) { lastTs = ts; prevSnap = snap(); return; }
+  let dtF = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
+  prevSnap = snap();
+  acc += dtF;
+  let n = 0;
+  while (acc >= SUB && n < 16) { physicsStep(SUB); acc -= SUB; n++; }
+  const a = Math.max(0, Math.min(1, acc / SUB));
+  const rx = prevSnap.rx + (rear.x - prevSnap.rx) * a;
+  const ry = prevSnap.ry + (rear.y - prevSnap.ry) * a;
+  const fx = prevSnap.fx + (front.x - prevSnap.fx) * a;
+  const fy = prevSnap.fy + (front.y - prevSnap.fy) * a;
+  const mx = (rx + fx) / 2, my = (ry + fy) / 2;
+  const mvx = (rear.x - rear.px) / SUB, mvy = (rear.y - rear.py) / SUB;
+
+  const txC = mx + mvx * 0.38, tyC = my - 26 + mvy * 0.10;
+  camX += (txC - camX) * (1 - Math.exp(-6 * dtF));
+  camY += (tyC - camY) * (1 - Math.exp(-4.5 * dtF));
+  wheelLean *= Math.exp(-5 * dtF);
+
+  const speedZoom = 1 - Math.min(0.13, Math.hypot(mvx, mvy) / 5200);
+  const scale = (VH / WORLD_H) * speedZoom;
+  draw(rx, ry, fx, fy, scale);
+  document.getElementById('hTime').textContent = time.toFixed(2);
+}
+function draw(rx, ry, fx, fy, scale) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const grad = ctx.createLinearGradient(0, 0, 0, VH);
+  grad.addColorStop(0, '#232c52'); grad.addColorStop(0.62, '#4a3566'); grad.addColorStop(1, '#7a4460');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = 'rgba(24,28,54,0.55)';
+  ctx.beginPath(); ctx.moveTo(0, VH);
+  for (let sx = 0; sx <= VW; sx += 8) {
+    const wx = camX * 0.35 + sx / scale;
+    ctx.lineTo(sx, VH * 0.66 - Math.sin(wx * 0.004) * 26 - Math.sin(wx * 0.011) * 10);
+  }
+  ctx.lineTo(VW, VH); ctx.fill();
+
+  ctx.translate(VW * 0.36, VH * 0.58);
+  ctx.scale(scale, scale);
+  ctx.translate(-camX, -camY);
+
+  const x0 = camX - VW * 0.36 / scale - 30, x1 = camX + VW * 0.64 / scale + 30;
+  ctx.beginPath();
+  ctx.moveTo(x0, groundY(x0));
+  for (let x = x0; x <= x1; x += 5) ctx.lineTo(x, groundY(x));
+  ctx.lineTo(x1, camY + WORLD_H + 200);
+  ctx.lineTo(x0, camY + WORLD_H + 200);
+  ctx.closePath();
+  ctx.fillStyle = '#5d3d22'; ctx.fill();
+  ctx.beginPath();
+  for (let x = x0; x <= x1; x += 5) { const y = groundY(x); x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  ctx.strokeStyle = '#69b455'; ctx.lineWidth = 5; ctx.stroke();
+
+  for (let i = 0; i < CHECKPOINTS.length; i++) {
+    const cxp = CHECKPOINTS[i], gy = groundY(cxp);
+    ctx.strokeStyle = i < cpIndex ? '#8dff7a' : '#ffd23f'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cxp, gy); ctx.lineTo(cxp, gy - 54); ctx.stroke();
+    ctx.fillStyle = i < cpIndex ? '#8dff7a' : '#ffd23f';
+    ctx.beginPath(); ctx.moveTo(cxp, gy - 54); ctx.lineTo(cxp + 16, gy - 47); ctx.lineTo(cxp, gy - 40); ctx.fill();
+  }
+  const fgy = groundY(FINISH_X);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(FINISH_X, fgy); ctx.lineTo(FINISH_X, fgy - 62); ctx.stroke();
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+    ctx.fillStyle = (r + c) % 2 ? '#111' : '#fff';
+    ctx.fillRect(FINISH_X + c * 5, fgy - 62 + r * 5, 5, 5);
+  }
+
+  drawBike(rx, ry, fx, fy);
+}
+function drawBike(rx, ry, fx, fy) {
+  const th = Math.atan2(fy - ry, fx - rx);
+  const cos = Math.cos(th), sin = Math.sin(th);
+  const mx = (rx + fx) / 2, my = (ry + fy) / 2;
+  const L = (lx, ly) => [mx + cos * lx - sin * ly, my + sin * lx + cos * ly];
+  ctx.lineCap = 'round';
+  for (const w of [[rx, ry], [fx, fy]]) {
+    ctx.beginPath(); ctx.arc(w[0], w[1], WHEEL_R, 0, Math.PI * 2);
+    ctx.fillStyle = '#191919'; ctx.fill();
+    ctx.strokeStyle = '#c9c9c9'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath();
+    for (let k = 0; k < 3; k++) {
+      const a = wheelSpin + k * Math.PI * 2 / 3;
+      ctx.moveTo(w[0], w[1]); ctx.lineTo(w[0] + Math.cos(a) * WHEEL_R * 0.8, w[1] + Math.sin(a) * WHEEL_R * 0.8);
+    }
+    ctx.strokeStyle = '#8a8a8a'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  const seat = L(-13, -13), tank = L(9, -15), bar = L(23, -21), peg = L(-2, -1);
+  ctx.strokeStyle = '#FE5000'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(peg[0], peg[1]); ctx.lineTo(tank[0], tank[1]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(bar[0], bar[1]); ctx.lineTo(tank[0], tank[1]); ctx.stroke();
+  ctx.strokeStyle = '#22242e'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(seat[0], seat[1]); ctx.lineTo(tank[0], tank[1]); ctx.stroke();
+  const hip = L(-7, -23), shoulder = L(6, -36), head = L(10, -44), knee = L(8, -14);
+  ctx.strokeStyle = '#2b3350'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(knee[0], knee[1]); ctx.lineTo(peg[0], peg[1]); ctx.stroke();
+  ctx.strokeStyle = '#39406b'; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(shoulder[0], shoulder[1]); ctx.stroke();
+  ctx.strokeStyle = '#2b3350'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(shoulder[0], shoulder[1]); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
+  ctx.beginPath(); ctx.arc(head[0], head[1], 6.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#FE5000'; ctx.fill();
+}
+
+reset(true);
+requestAnimationFrame(frame);
+
+/* ---------- headless test hook ---------- */
+window.__game = {
+  get: () => { const rv = velOf(rear, SUB), fv = velOf(front, SUB);
+    return { x:midX(), y:midY(), vx:(rv.x + fv.x) / 2, vy:(rv.y + fv.y) / 2,
+             th:frameAngle(), av:angVel, thr:thrSm, grounded:anyContact,
+             time, faults, finished, cpIndex }; },
+  setAnalog: (thr, lean) => { ANALOG.throttle = thr; ANALOG.lean = lean; },
+  setInput: (code, on) => { const p = KEYMAP[code]; if (p) input[p] = !!on; },
+  step: (dt) => { const steps = Math.max(1, Math.round(dt / SUB)); for (let i = 0; i < steps; i++) physicsStep(SUB); },
+  reset: () => reset(true),
+};
+</script>
+</body>
+</html>
