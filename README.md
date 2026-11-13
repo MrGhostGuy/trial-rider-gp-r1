@@ -1,8 +1,14 @@
-# Trial Rider GP — R1 Edition (v5)
+# Trial Rider GP — R1 Edition (v6)
 
 A Trials-style physics motorcycle game built for the Rabbit R1's 240×282 screen.
 
 **Play:** https://mrghostguy.github.io/trial-rider-gp-r1/
+
+## v6 — ramps, floating platforms, lava
+- **Wedge ramps (kickers)** — a new obstacle type that launches you onto platform lines.
+- **Floating platform crosses** — Deep Quarry, Midnight Foundry and Apex Ridge each hide a lava pit crossed by tilted floating platforms (descending chains on T5/T6; T7 adds a step-up mid-chain). Touching the lava is a fault — checkpoints sit right before each cross, per classic Trials design.
+- **Remix mode grows up** — remix runs now also scatter procedurally placed ramps and 3-platform floating lines over flat stretches, so remix laps genuinely reroute the track.
+- Track design informed by research into Trials Fusion/Rising: platform chains where early platforms ride on momentum, hazards as the floor under crossings, checkpoints within sight of hard sections, ~75% throttle precision hops.
 
 ## v5 — more tracks, more reasons to replay
 - **3 new career tracks, progressively harder and longer** — Deep Quarry (8.4 km of twin seesaws, log stairs and mud climbs), Midnight Foundry (seesaw-to-beam combos, a mover-bridged pit, twin walls) and Apex Ridge, a 12.4 km finale with a triple seesaw chain and every obstacle in the game.

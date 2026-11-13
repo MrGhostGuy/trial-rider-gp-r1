@@ -81,7 +81,7 @@
   <div class="tbtn" id="bMenu">⏸</div>
 
   <div class="screen show" id="scrTitle">
-    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V5</div></div>
+    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V6</div></div>
     <button class="mi sel" data-act="career">🏁 CAREER<small>7 tracks · medals · unlocks · ghost racing</small></button>
     <button class="mi" data-act="skills">🎯 SKILL GAMES<small>Long Jump · Flip Frenzy · Hill Climb</small></button>
     <button class="mi" data-act="garage">🎨 GARAGE<small>Colours · crates · trails</small></button>
@@ -157,7 +157,8 @@
       <b>Bolts &amp; crates</b> — medals pay bolts (⚙). Spend ⚙40 on a crate in the Garage for random cosmetics; EPIC+ is guaranteed within 12 opens.<br>
       <b>Ghost</b> — your best medal run races beside you as a translucent ghost (Settings).<br>
       <b>Daily Climb</b> — one seeded hill per day; set the best you can, medals pay fresh bolts daily.<br>
-      <b>Remix</b> — Settings toggle: career tracks shuffle their logs and barrels every run. Pays bolts, never touches your records.<br>
+      <b>Remix</b> — Settings toggle: career tracks shuffle their logs and barrels every run, and scatter bonus ramps and floating platform lines over the flat stretches. Pays bolts, never touches your records.<br>
+      <b>Lava crosses</b> — on the late tracks, ride the ramp and hop the floating platforms across the lava. Touching the lava is a fault, so commit to the line.<br>
       <b>Achievements</b> — 8 trophies in the Garage pay bonus bolts.<br>
       <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, C checkpoint restart, K hop, Esc pause.<br>
       Tip: ease off the gas before a drop, and lean back early on climbs — momentum is everything.
@@ -316,29 +317,32 @@ const TRACKS = [
     pars:{ gold:23, silver:31, bronze:46 } },
   { name:'DEEP QUARRY', sub:'Twin seesaws, log stairs, mud climbs — the quarry bites back',
     sky:['#2e2140','#5e3350','#d97a44'], hill:'rgba(24,14,34,0.6)', finish:8400,
-    cps:[1500, 3100, 4700, 6300, 7600],
-    pts:[[-300,300],[320,300],[440,258],[560,300],[700,322],[830,276],[960,300],[1100,300],[1180,238],[1360,238],[1460,300],[1620,306],[1760,258],[1880,210],[2000,204],[2140,258],[2300,300],[2460,300],[2600,268],[2740,300],[2900,300],[3060,300],[3220,282],[3360,300],[3520,300],[3680,246],[3840,240],[4000,300],[4180,300],[4340,272],[4460,182],[4540,170],[4680,238],[4840,300],[5020,300],[5180,284],[5270,300],[5360,284],[5450,300],[5620,300],[5780,262],[5940,300],[6120,300],[6280,274],[6440,300],[6600,300],[6760,252],[6920,246],[7080,300],[7260,300],[7420,268],[7580,300],[7760,282],[7920,300],[8400,300],[8800,300]],
+    cps:[1500, 3100, 4700, 5900, 7600],
+    pts:[[-300,300],[320,300],[440,258],[560,300],[700,322],[830,276],[960,300],[1100,300],[1180,238],[1360,238],[1460,300],[1620,306],[1760,258],[1880,210],[2000,204],[2140,258],[2300,300],[2460,300],[2600,268],[2740,300],[2900,300],[3060,300],[3220,282],[3360,300],[3520,300],[3680,246],[3840,240],[4000,300],[4180,300],[4340,272],[4460,182],[4540,170],[4680,238],[4840,300],[5020,300],[5180,284],[5270,300],[5360,284],[5450,300],[5620,300],[5780,262],[5940,300],[6120,300],[6180,352],[6360,352],[6440,300],[6600,300],[6760,252],[6920,246],[7080,300],[7260,300],[7420,268],[7580,300],[7760,282],[7920,300],[8400,300],[8800,300]],
     seesaws:[{x:2900, y:288, len:160},{x:3060, y:288, len:160}], barrels:[{x:2480},{x:4960},{x:5020},{x:5080}], tires:[{x0:6560, x1:6740}],
-    logs:[{x:1050, r:17, s:'pipe'},{x:3560, r:12, s:'log'},{x:3625, r:13, s:'log'},{x:6360, r:13, s:'tyre'}],
-    mud:[{x0:1560, x1:1740},{x0:7160, x1:7340}], shelves:[{x0:4880, x1:5140, y:256}],
+    logs:[{x:1050, r:17, s:'pipe'},{x:3560, r:12, s:'log'},{x:3625, r:13, s:'log'}],
+    mud:[{x0:1560, x1:1740},{x0:7160, x1:7340}], shelves:[{x0:4880, x1:5140, y:256},{x0:6190, x1:6300, y:270, tilt:3, float:1},{x0:6345, x1:6445, y:282, tilt:-3, float:1}],
+    ramps:[{x:6030, w:80, h:30}], hazards:[{x0:6180, x1:6360}],
     movers:[{x:5660, y:250, w:120, amp:16, per:2.6}],
     pars:{ gold:31, silver:42, bronze:64 } },
   { name:'MIDNIGHT FOUNDRY', sub:'Seesaw-to-beam combos, a bridged pit, twin walls',
     sky:['#0a1420','#122838','#7a3a20'], hill:'rgba(4,10,16,0.65)', finish:10200,
-    cps:[1700, 3400, 5100, 6800, 8500],
-    pts:[[-300,300],[300,300],[430,254],[560,300],[700,324],[840,300],[980,300],[1090,246],[1250,246],[1370,300],[1540,300],[1680,266],[1820,300],[1980,300],[2120,252],[2260,300],[2420,300],[2580,278],[2720,300],[2880,300],[3040,238],[3200,232],[3360,300],[3540,300],[3700,266],[3840,300],[4000,300],[4140,240],[4300,234],[4460,300],[4640,300],[4800,272],[4920,180],[5000,168],[5140,236],[5300,300],[5480,300],[5640,282],[5730,300],[5820,282],[5910,300],[6080,300],[6240,258],[6400,300],[6580,300],[6640,352],[6720,352],[6800,300],[6940,246],[7100,240],[7260,300],[7440,270],[7600,300],[7760,300],[7920,262],[8080,300],[8240,300],[8400,244],[8560,238],[8720,300],[8900,300],[9060,272],[9220,300],[9400,300],[9580,276],[9740,300],[10200,300],[10600,300]],
+    cps:[1700, 3400, 5100, 5900, 8500],
+    pts:[[-300,300],[300,300],[430,254],[560,300],[700,324],[840,300],[980,300],[1090,246],[1250,246],[1370,300],[1540,300],[1680,266],[1820,300],[1980,300],[2120,252],[2260,300],[2420,300],[2580,278],[2720,300],[2880,300],[3040,238],[3200,232],[3360,300],[3540,300],[3700,266],[3840,300],[4000,300],[4140,240],[4300,234],[4460,300],[4640,300],[4800,272],[4920,180],[5000,168],[5140,236],[5300,300],[5480,300],[5640,282],[5730,300],[5820,282],[5910,300],[6080,300],[6160,358],[6340,358],[6420,300],[6580,300],[6640,352],[6720,352],[6800,300],[6940,246],[7100,240],[7260,300],[7440,270],[7600,300],[7760,300],[7920,262],[8080,300],[8240,300],[8400,244],[8560,238],[8720,300],[8900,300],[9060,272],[9220,300],[9400,300],[9580,276],[9740,300],[10200,300],[10600,300]],
     seesaws:[{x:3460, y:288, len:160}], barrels:[{x:2540},{x:9200},{x:9280}], tires:[{x0:7740, x1:7900}],
     logs:[{x:700, r:16, s:'pipe'},{x:2940, r:12, s:'log'},{x:2995, r:13, s:'log'},{x:5680, r:13, s:'tyre'},{x:8260, r:15, s:'log'}],
-    mud:[{x0:1600, x1:1760},{x0:4520, x1:4660},{x0:7300, x1:7460}], shelves:[{x0:3620, x1:3860, y:254},{x0:9120, x1:9380, y:258}],
+    mud:[{x0:1600, x1:1760},{x0:4520, x1:4660},{x0:7300, x1:7460}], shelves:[{x0:3620, x1:3860, y:254},{x0:9120, x1:9380, y:258},{x0:6130, x1:6220, y:264, tilt:3, float:1},{x0:6265, x1:6350, y:276, tilt:-6, float:1},{x0:6390, x1:6470, y:288, tilt:2, float:1}],
+    ramps:[{x:5990, w:80, h:34}], hazards:[{x0:6160, x1:6340}],
     movers:[{x:6680, y:316, w:140, amp:10, per:2.8}],
     pars:{ gold:41, silver:55, bronze:84 } },
   { name:'APEX RIDGE', sub:'The finale — triple seesaws, two walls, everything at once',
     sky:['#160f2e','#33204e','#a03a50'], hill:'rgba(10,6,24,0.65)', finish:12400,
-    cps:[1800, 3600, 5400, 7200, 9000, 10800],
-    pts:[[-300,300],[300,300],[420,246],[540,300],[690,330],[830,282],[970,300],[1130,300],[1210,230],[1390,230],[1490,300],[1660,308],[1800,254],[1920,204],[2040,196],[2180,252],[2340,302],[2520,300],[2660,264],[2800,300],[2960,300],[3120,300],[3300,282],[3460,300],[3620,300],[3780,240],[3940,234],[4100,300],[4280,300],[4440,268],[4560,176],[4640,164],[4780,234],[4940,300],[5120,300],[5280,280],[5370,300],[5460,280],[5550,300],[5720,300],[5880,256],[6040,300],[6220,300],[6380,270],[6540,300],[6700,300],[6860,238],[7020,232],[7180,300],[7240,354],[7320,354],[7440,300],[7600,264],[7760,300],[7940,300],[8100,248],[8260,242],[8420,300],[8600,300],[8760,270],[8880,178],[8960,166],[9100,236],[9260,300],[9440,300],[9600,274],[9760,300],[9940,300],[10100,250],[10260,244],[10420,300],[10600,300],[10760,268],[10920,300],[11080,300],[11240,262],[11400,300],[11560,282],[11720,300],[12400,300],[12800,300]],
+    cps:[1800, 3600, 5400, 7200, 9000, 10200],
+    pts:[[-300,300],[300,300],[420,246],[540,300],[690,330],[830,282],[970,300],[1130,300],[1210,230],[1390,230],[1490,300],[1660,308],[1800,254],[1920,204],[2040,196],[2180,252],[2340,302],[2520,300],[2660,264],[2800,300],[2960,300],[3120,300],[3300,282],[3460,300],[3620,300],[3780,240],[3940,234],[4100,300],[4280,300],[4440,268],[4560,176],[4640,164],[4780,234],[4940,300],[5120,300],[5280,280],[5370,300],[5460,280],[5550,300],[5720,300],[5880,256],[6040,300],[6220,300],[6380,270],[6540,300],[6700,300],[6860,238],[7020,232],[7180,300],[7240,354],[7320,354],[7440,300],[7600,264],[7760,300],[7940,300],[8100,248],[8260,242],[8420,300],[8600,300],[8760,270],[8880,178],[8960,166],[9100,236],[9260,300],[9440,300],[9600,274],[9760,300],[9940,300],[10100,250],[10260,244],[10420,300],[10500,360],[10720,360],[10800,300],[10920,300],[11080,300],[11240,262],[11400,300],[11560,282],[11720,300],[12400,300],[12800,300]],
     seesaws:[{x:2960, y:288, len:160},{x:3120, y:288, len:160},{x:3300, y:282, len:150}], barrels:[{x:2620},{x:5000},{x:5070},{x:5140},{x:11120}], tires:[{x0:4240, x1:4400},{x0:9300, x1:9480}],
     logs:[{x:1050, r:17, s:'pipe'},{x:1720, r:12, s:'log'},{x:1775, r:13, s:'log'},{x:5740, r:14, s:'tyre'},{x:8180, r:13, s:'log'},{x:8245, r:12, s:'log'},{x:9880, r:15, s:'log'}],
-    mud:[{x0:1580, x1:1740},{x0:5560, x1:5700},{x0:10480, x1:10640}], shelves:[{x0:4940, x1:5200, y:254},{x0:11000, x1:11240, y:256}],
+    mud:[{x0:1580, x1:1740},{x0:5560, x1:5700},{x0:11400, x1:11560}], shelves:[{x0:4940, x1:5200, y:254},{x0:11000, x1:11240, y:256},{x0:10480, x1:10570, y:262, tilt:-6, float:1},{x0:10615, x1:10695, y:276, tilt:8, float:1},{x0:10740, x1:10820, y:288, tilt:0, float:1}],
+    ramps:[{x:10330, w:80, h:34}], hazards:[{x0:10500, x1:10720}],
     movers:[{x:6580, y:246, w:120, amp:14, per:2.4},{x:7280, y:318, w:140, amp:12, per:2.6}],
     pars:{ gold:58, silver:78, bronze:118 } },
 ];
@@ -368,7 +372,7 @@ function makeClimbPts(seed) {
 
 /* ---------- live run state ---------- */
 let MODE = null;          // {kind:'track'|'jump'|'flip'|'climb', def, pts}
-let seesaws = [], barrels = [], logs = [], shelves = [], movers = [], mudZones = [];
+let seesaws = [], barrels = [], logs = [], shelves = [], movers = [], mudZones = [], ramps = [], hazardZones = [];
 let camX = 0, camY = 200, shake = 0;
 function staticY(x) { return CR(MODE.pts, x); }
 function staticSlope(x) { return (staticY(x+3) - staticY(x-3)) / 6; }
@@ -396,8 +400,16 @@ function groundAt(x, wy) {
   }
   for (const sh of shelves) {
     if (x >= sh.x0 - 3 && x <= sh.x1 + 3) {
-      const pen = (wy + WHEEL_R) - sh.y;
-      if (pen > best.pen && pen < 16) best = { y: sh.y, slope: 0, surf: 'shelf', ref: sh, pen };
+      const y = sh.y + sh.slope * (x - (sh.x0 + sh.x1) / 2);
+      const pen = (wy + WHEEL_R) - y;
+      if (pen > best.pen && pen < 16) best = { y, slope: sh.slope, surf: 'shelf', ref: sh, pen };
+    }
+  }
+  for (const rp of ramps) {
+    if (x >= rp.x0 && x <= rp.x0 + rp.w) {
+      const y = rp.gy - rp.h * (x - rp.x0) / rp.w;
+      const pen = (wy + WHEEL_R) - y;
+      if (pen > best.pen && pen < 30) best = { y, slope: -rp.h / rp.w, surf: 'ramp', ref: rp, pen };
     }
   }
   for (const mv of movers) {
@@ -422,11 +434,32 @@ function makeDynamics(def) {
     return { cx: s.x, cy: s.y, len: s.len, ang: angMin, av: 0, angMin, angMax };
   });
   logs = (def.logs || []).map(l => ({ cx: l.x, cy: staticY(l.x) - l.r + 4, r: l.r, style: l.s || 'log' }));
-  shelves = (def.shelves || []).map(s => ({ x0: s.x0, x1: s.x1, y: s.y }));
+  shelves = (def.shelves || []).map(s => ({ x0: s.x0, x1: s.x1, y: s.y, slope: Math.tan((s.tilt || 0) * Math.PI / 180), float: !!s.float }));
+  ramps = (def.ramps || []).map(r => ({ x0: r.x, w: r.w, h: r.h, gy: staticY(r.x) }));
+  hazardZones = def.hazards || [];
   movers = (def.movers || []).map(m => ({ x0: m.x - m.w / 2, x1: m.x + m.w / 2, y: m.y, amp: m.amp, per: m.per, ph: m.ph || 0, curY: m.y }));
   mudZones = def.mud || [];
   if (MODE && MODE.remix) {
     for (const lg of logs) { lg.cx += Math.random() * 90 - 45; lg.cy = staticY(lg.cx) - lg.r + 4; }
+    const fin = MODE.def.finish || 6000;
+    let lastRampX = -9999, lines = 0;
+    for (let x = 600; x < fin - 800 && ramps.length < 3; x += 240) {
+      if (x - lastRampX < 1000) continue;
+      if (Math.abs(staticSlope(x)) > 0.10 || Math.abs(staticSlope(x + 130)) > 0.10) continue;
+      if (Math.abs(staticY(x + 130) - staticY(x)) > 16) continue;
+      ramps.push({ x0: x, w: 70 + Math.random() * 30, h: 26 + Math.random() * 14, gy: staticY(x) });
+      lastRampX = x;
+    }
+    for (let x = 900; x < fin - 1100 && lines < 2; x += 420) {
+      if (Math.abs(staticSlope(x)) > 0.08 || Math.abs(staticY(x + 430) - staticY(x)) > 18) continue;
+      if (ramps.some(r => Math.abs(r.x0 - x) < 500)) continue;
+      const gy = staticY(x);
+      shelves.push(
+        { x0: x, x1: x + 95, y: gy - 58, slope: 0.03, float: true },
+        { x0: x + 150, x1: x + 240, y: gy - 48, slope: -0.04, float: true },
+        { x0: x + 295, x1: x + 395, y: gy - 62, slope: 0, float: true });
+      lines++; x += 500;
+    }
   }
   barrels = (def.barrels || []).map(b => {
     const jx = b.x + (MODE && MODE.remix ? Math.random() * 140 - 70 : Math.random() * 50 - 25);
@@ -842,6 +875,9 @@ function gameLogic(dt, th, dTh) {
     if (climbBestX > 1400 && x < 420) { climbFinish('SLID OUT'); return; }
   }
 
+  /* lava hazard: touching the floor inside a hazard zone is a fault */
+  if (hazardZones.length && anyContact && midY() > staticY(x) - 26 && hazardZones.some(z => x >= z.x0 && x <= z.x1)) doFault();
+
   /* fault check (all modes) */
   const cos = Math.cos(th), sin = Math.sin(th);
   const hx = midX() + cos * 2 - sin * -38, hy = midY() + sin * 2 + cos * -38;
@@ -970,6 +1006,21 @@ function draw(a, dtF) {
     ctx.fillStyle = 'rgba(140,110,70,0.5)';
     for (let x = z.x0 + 14; x < z.x1; x += 44) ctx.fillRect(x, staticY(x) + 1, 18, 2);
   }
+  // lava hazard pools
+  for (const z of hazardZones) {
+    ctx.beginPath();
+    for (let x = z.x0; x <= z.x1; x += 8) { const y = staticY(x); x === z.x0 ? ctx.moveTo(x, y - 2) : ctx.lineTo(x, y - 2); }
+    for (let x = z.x1; x >= z.x0; x -= 8) ctx.lineTo(x, staticY(x) + 15);
+    ctx.closePath();
+    ctx.fillStyle = '#d63c08'; ctx.fill();
+    ctx.fillStyle = '#ff7a1a';
+    for (let x = z.x0 + 10; x < z.x1; x += 26) {
+      const by = staticY(x) + 3 + Math.sin(runClock * 2.4 + x * 0.11) * 1.6;
+      ctx.beginPath(); ctx.arc(x, by, 3.4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#ffd23f';
+    for (let x = z.x0 + 22; x < z.x1; x += 52) ctx.fillRect(x, staticY(x) - 1, 12, 2);
+  }
   // tyre bounce zones: draw tyre stacks
   if (MODE.def.tires) for (const t of MODE.def.tires) {
     for (let x = t.x0 + 8; x < t.x1; x += 26) drawTyre(x, staticY(x) - 2);
@@ -1046,14 +1097,39 @@ function draw(a, dtF) {
       ctx.beginPath(); ctx.arc(lg.cx, lg.cy, lg.r * 0.3, 0, Math.PI * 2); ctx.stroke();
     }
   }
-  // shelves (ride-over beams)
+  // shelves (ride-over beams) and floating platforms
   for (const sh of shelves) {
-    ctx.strokeStyle = '#5d4a33'; ctx.lineWidth = 5;
-    for (const px of [sh.x0 + 8, sh.x1 - 8]) {
-      ctx.beginPath(); ctx.moveTo(px, sh.y + 3); ctx.lineTo(px, staticY(px)); ctx.stroke();
+    const cxm = (sh.x0 + sh.x1) / 2;
+    const yA = sh.y + sh.slope * (sh.x0 - cxm), yB = sh.y + sh.slope * (sh.x1 - cxm);
+    if (sh.float) {
+      ctx.strokeStyle = '#2c313a'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(sh.x0 + 2, yA); ctx.lineTo(sh.x1 - 2, yB); ctx.stroke();
+      ctx.strokeStyle = '#FE5000'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(sh.x0 + 2, yA - 4); ctx.lineTo(sh.x1 - 2, yB - 4); ctx.stroke();
+      ctx.fillStyle = 'rgba(254,80,0,0.5)';
+      ctx.beginPath(); ctx.arc(cxm, (yA + yB) / 2 + 7, 2.2, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.strokeStyle = '#5d4a33'; ctx.lineWidth = 5;
+      for (const px of [sh.x0 + 8, sh.x1 - 8]) {
+        ctx.beginPath(); ctx.moveTo(px, sh.y + sh.slope * (px - cxm) + 3); ctx.lineTo(px, staticY(px)); ctx.stroke();
+      }
+      ctx.strokeStyle = '#a5713a'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(sh.x0 - 3, yA); ctx.lineTo(sh.x1 + 3, yB); ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sh.x0 - 3, yA + 3); ctx.lineTo(sh.x1 + 3, yB + 3); ctx.stroke();
     }
-    ctx.fillStyle = '#a5713a'; ctx.fillRect(sh.x0 - 4, sh.y - 3, sh.x1 - sh.x0 + 8, 6);
-    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(sh.x0 - 4, sh.y + 1, sh.x1 - sh.x0 + 8, 2);
+  }
+  // wedge ramps (kickers)
+  for (const rp of ramps) {
+    ctx.beginPath();
+    ctx.moveTo(rp.x0 - 2, rp.gy + 12); ctx.lineTo(rp.x0 - 2, rp.gy);
+    ctx.lineTo(rp.x0 + rp.w, rp.gy - rp.h); ctx.lineTo(rp.x0 + rp.w, rp.gy + 12);
+    ctx.closePath();
+    ctx.fillStyle = '#7a828e'; ctx.fill();
+    ctx.strokeStyle = '#FE5000'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(rp.x0 - 2, rp.gy); ctx.lineTo(rp.x0 + rp.w, rp.gy - rp.h); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(rp.x0 + rp.w * 0.4, rp.gy - rp.h * 0.4 + 4); ctx.lineTo(rp.x0 + rp.w * 0.4, rp.gy + 10); ctx.stroke();
   }
   // movers (elevator platforms on guide rails)
   for (const mv of movers) {
