@@ -38,3 +38,10 @@ A Trials-style physics motorcycle game built for the Rabbit R1's 240×282 screen
 - **GAS / BRAKE** pedals on screen; in the air, GAS pitches back, BRAKE pitches forward
 
 Faults send you back to the last checkpoint and add +5s to your medal time.
+
+## v8 — weight transfer, extreme tracks, boost you can SEE (2026-11-12)
+- **Weight transfer physics**: gas loads the rear wheel (wheelies lift easier, hold longer), braking dives the front (stoppies, pivot turns) — and the rider's body visibly shifts on the bike. The camera look-ahead is hard-capped so boost speed no longer pushes the bike off-screen.
+- **Rocket boost, visible edition**: three-layer flame jet (white-hot core), speed streaks, bigger flame particles, draining fuel gauge — frame-verified this time.
+- **Two EXTREME tracks**: T8 VERTIGO FOUNDRY (14,200) and T9 NINJA RIDGE (16,800) — hop gaps you can't roll, step-up staircases, short-platform precision crosses, a mover over a void, a mud climb, a curved near-vertical wall. Advanced mechanics are mandatory; the test bot finishes both (with cooldown hop tech), and clean 0-fault runs are on record.
+- **Detailed rider + bike**: suit with chest stripe, helmet peak, boots and gloves, engine block, exhaust with muffler, twin front forks, spoked hubs, number plate.
+- **Crates grew**: 32 cosmetics — animated Galaxy Shift (LEGENDARY) and Molten Core frames, Demon Horns helm (with actual horns), Skull King, Neon Spectre, Void Rims, Inferno Rims, Lightning and Toxic trails.

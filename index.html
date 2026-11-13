@@ -83,7 +83,7 @@
   <div class="tbtn" id="bMenu">⏸</div>
 
   <div class="screen show" id="scrTitle">
-    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V7</div></div>
+    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V8</div></div>
     <button class="mi sel" data-act="career">🏁 CAREER<small>7 tracks · medals · unlocks · ghost racing</small></button>
     <button class="mi" data-act="skills">🎯 SKILL GAMES<small>Long Jump · Flip Frenzy · Hill Climb</small></button>
     <button class="mi" data-act="garage">🎨 GARAGE<small>Colours · crates · trails</small></button>
@@ -163,6 +163,9 @@
       <b>Lava crosses</b> — on the late tracks, ride the ramp and hop the floating platforms across the lava. Touching the lava is a fault, so commit to the line.<br>
       <b>Void crosses</b> — every track now has platform crosses over open chasms: the terrain below is GONE, so falling short is a fault. The ramp launches you in — trust it.<br>
       <b>Rocket boost</b> — Long Jump only: hold <b>B</b> / Shift or the BOOST pedal for one tank of rocket thrust. Boost on the run-up and through the lip for max distance (about double!).<br>
+<b>Weight transfer</b> — the bike shifts its weight like the real thing: gas loads the rear wheel, so wheelies lift easier and hold longer; braking dives the front, so the rear comes up for stoppies and pivot turns. Watch the rider's body move with it.<br>
+<b>Extreme tracks</b> — VERTIGO FOUNDRY and NINJA RIDGE are longer, meaner, and gated by technique: hop gaps you can't roll, step-up staircases, short-platform crosses, a mover over a void. Out there, hops and weight transfer aren't optional.<br>
+<b>New in crates</b> — 10 more cosmetics (32 total): animated Galaxy Shift and Molten Core frames, the Demon Horns helm (yes, it has horns), Skull King, Void Rims, Lightning Trail and more.<br>
       <b>Achievements</b> — 8 trophies in the Garage pay bonus bolts.<br>
       <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, C checkpoint restart, K hop, Esc pause.<br>
       Tip: ease off the gas before a drop, and lean back early on climbs — momentum is everything.
@@ -231,7 +234,7 @@ function dailySeed() { const d = new Date(); return d.getFullYear() * 10000 + (d
 const ACHS = [
   { id: 'fin1',    name: 'First Finish',   desc: 'Finish any career track',        bolts: 20,  test: () => PROGRESS.stats.finishes >= 1 },
   { id: 'gold3',   name: 'Gold Rush',      desc: 'Earn 3 gold medals',             bolts: 40,  test: () => PROGRESS.stats.golds >= 3 },
-  { id: 'all7',    name: 'Completionist',  desc: 'Finish all 7 career tracks',     bolts: 100, test: () => TRACKS.every((t, i) => PROGRESS.finished[i]) },
+  { id: 'all7',    name: 'Completionist',  desc: 'Finish every career track',     bolts: 100, test: () => TRACKS.every((t, i) => PROGRESS.finished[i]) },
   { id: 'own10',   name: 'Collector',      desc: 'Own 10 crate cosmetics',         bolts: 40,  test: () => Object.keys(GARAGE.owned).length >= 10 },
   { id: 'crate10', name: 'Crate Fiend',    desc: 'Open 10 crates',                 bolts: 30,  test: () => PROGRESS.stats.crates >= 10 },
   { id: 'flip1k',  name: 'Flip Master',    desc: 'Score 1000+ in one Flip Frenzy', bolts: 40,  test: () => PROGRESS.stats.flipBest >= 1000 },
@@ -354,6 +357,27 @@ const TRACKS = [
     ramps:[{x:6280, w:75, h:28},{x:10330, w:80, h:34},{x:10990, w:80, h:32}], hazards:[{x0:10500, x1:10720}], voids:[{x0:11100, x1:11240, y:384}],
     movers:[{x:6580, y:246, w:120, amp:14, per:2.4},{x:7280, y:318, w:140, amp:12, per:2.6}],
     pars:{ gold:58, silver:78, bronze:118 } },
+  { name:'VERTIGO FOUNDRY', sub:'EXTREME — hop gaps, step-ups, precision crosses. Advanced tech required',
+    sky:['#0b0616','#1c0f30','#3a1030'], hill:'rgba(10,4,20,0.65)', finish:14200, theme:{ ground:'#1d1a24', edge:'#ff3fa4', strata:'rgba(255,63,164,0.08)', decor:'city', glow:1 },
+    cps:[1200, 3050, 4550, 6100, 7600, 9200, 10800, 12400, 13600],
+    pts:[[-300,300],[300,300],[430,262],[560,300],[700,322],[830,282],[960,300],[1120,300],[1250,288],[1400,300],[1500,300],[1560,300],[1570,730],[1700,730],[1710,300],[1900,300],[2050,262],[2200,300],[2360,300],[2500,272],[2640,300],[2800,300],[2950,262],[3100,300],[3180,300],[3260,300],[3268,264],[3358,264],[3366,228],[3456,228],[3464,192],[3560,192],[3660,240],[3760,300],[3920,300],[4080,282],[4240,300],[4400,300],[4560,284],[4700,300],[4760,356],[5060,356],[5120,300],[5280,300],[5440,272],[5600,300],[5760,300],[5920,282],[6080,300],[6240,300],[6400,296],[6560,300],[6720,296],[6880,300],[7060,300],[7240,278],[7420,300],[7600,300],[7760,300],[8300,300],[8460,282],[8620,300],[8780,300],[8940,272],[9100,300],[9260,300],[9350,300],[9410,352],[9640,352],[9700,300],[9860,300],[10020,282],[10180,300],[10340,300],[10500,272],[10660,300],[10820,300],[10900,300],[11020,268],[11090,178],[11160,168],[11260,236],[11360,300],[11520,300],[11680,282],[11840,300],[12000,300],[12160,276],[12320,300],[12480,300],[12500,300],[12510,730],[12940,730],[12950,300],[13100,300],[13260,282],[13420,300],[13600,300],[13800,284],[14000,300],[14200,300],[14600,300]],
+    seesaws:[{x:6300, y:288, len:150},{x:6460, y:288, len:150},{x:6620, y:288, len:150}], barrels:[{x:2540},{x:4180}], tires:[{x0:13100, x1:13260}],
+    logs:[{x:1050, r:17, s:'pipe'},{x:7820, r:11, s:'log'},{x:7880, r:11, s:'log'},{x:7940, r:11, s:'log'},{x:8000, r:11, s:'log'},{x:8060, r:11, s:'log'}],
+    mud:[{x0:5440, x1:5600}], shelves:[{x0:4780, x1:4852, y:262, tilt:3, float:1},{x0:4894, x1:4966, y:274, tilt:-8, float:1},{x0:5008, x1:5080, y:286, float:1},{x0:12560, x1:12650, y:262, tilt:-4, float:1},{x0:12700, x1:12790, y:250, float:1},{x0:12840, x1:12930, y:272, tilt:3, float:1}],
+    ramps:[{x:900, w:75, h:28},{x:4620, w:80, h:32},{x:8400, w:80, h:30},{x:12420, w:80, h:34}],
+    hazards:[{x0:4760, x1:5060}], voids:[{x0:1560, x1:1710, y:380},{x0:9350, x1:9700, y:318},{x0:12500, x1:12950, y:380}],
+    movers:[{x:9525, y:312, w:250, amp:8, per:2.8}],
+    pars:{ gold:55, silver:75, bronze:120 } },
+  { name:'NINJA RIDGE', sub:'EXTREME — double hop gaps, four step-ups, the works. Masters only',
+    sky:['#0d0518','#241040','#4a1a3a'], hill:'rgba(8,4,18,0.65)', finish:16800, theme:{ ground:'#241a2e', edge:'#b26bff', strata:'rgba(178,107,255,0.09)', decor:'peaks', glow:1 },
+    cps:[1450, 2250, 3300, 5000, 6700, 8400, 10100, 11800, 13500, 15200, 16100],
+    pts:[[-300,300],[300,300],[420,258],[540,300],[690,324],[830,282],[970,300],[1130,300],[1290,288],[1450,300],[1600,300],[1700,300],[1710,730],[1860,730],[1870,300],[2050,300],[2210,272],[2300,300],[2400,300],[2408,262],[2492,262],[2500,224],[2584,224],[2592,186],[2676,186],[2684,148],[2800,148],[2900,220],[3000,300],[3160,300],[3320,282],[3400,300],[3410,730],[3560,730],[3570,300],[3660,300],[3670,730],[3820,730],[3830,300],[3990,300],[4150,272],[4310,300],[4470,300],[4630,282],[4790,300],[4950,300],[5100,300],[5160,358],[5560,358],[5620,300],[5780,300],[5940,272],[6100,300],[6260,300],[6420,282],[6580,300],[6740,300],[6800,300],[7000,246],[7240,176],[7440,214],[7600,262],[7760,300],[7920,300],[8080,282],[8240,300],[8400,300],[8480,300],[8490,730],[8760,730],[8770,300],[8930,300],[9090,272],[9250,300],[9410,300],[9570,282],[9730,300],[9890,300],[10050,272],[10200,300],[10210,730],[10690,730],[10700,300],[10860,300],[11020,282],[11180,300],[11340,300],[11500,272],[11660,300],[11820,300],[11900,300],[11960,272],[11985,214],[12010,168],[12070,158],[12170,230],[12270,300],[12430,300],[12590,282],[12750,300],[12910,300],[13070,278],[13230,300],[13390,300],[13550,272],[13710,300],[13870,300],[14030,282],[14190,300],[14350,300],[14510,276],[14670,300],[14830,300],[14990,282],[15150,300],[15300,300],[15370,360],[15930,360],[16000,300],[16160,300],[16320,282],[16480,300],[16640,300],[16800,300],[17200,300]],
+    seesaws:[{x:8550, y:282, len:150},{x:13070, y:288, len:150},{x:13230, y:288, len:150}], barrels:[{x:4150},{x:9570}], tires:[{x0:10900, x1:11060}],
+    logs:[{x:5740, r:14, s:'tyre'},{x:14490, r:13, s:'log'}],
+    mud:[{x0:6950, x1:7400}], shelves:[{x0:5180, x1:5245, y:260, tilt:-8, float:1},{x0:5300, x1:5365, y:272, tilt:8, float:1},{x0:5410, x1:5510, y:278, tilt:-5, float:1},{x0:5540, x1:5610, y:282, float:1},{x0:8680, x1:8760, y:268, float:1},{x0:10260, x1:10325, y:264, float:1},{x0:10380, x1:10445, y:278, tilt:6, float:1},{x0:10500, x1:10565, y:292, tilt:-6, float:1},{x0:10620, x1:10700, y:288, float:1},{x0:15395, x1:15490, y:262, tilt:3, float:1},{x0:15535, x1:15625, y:256, tilt:-6, float:1},{x0:15680, x1:15760, y:266, tilt:5, float:1},{x0:15820, x1:15910, y:284, float:1}],
+    ramps:[{x:1010, w:75, h:28},{x:5020, w:80, h:34},{x:10120, w:80, h:32},{x:11830, w:70, h:26},{x:15220, w:80, h:34},{x:16300, w:80, h:30}],
+    hazards:[{x0:5160, x1:5560},{x0:15370, x1:15930}], voids:[{x0:1700, x1:1870, y:380},{x0:3400, x1:3570, y:380},{x0:3660, x1:3830, y:380},{x0:8480, x1:8770, y:384},{x0:10200, x1:10700, y:380}],
+    pars:{ gold:70, silver:95, bronze:150 } },
 ];
 const ARENAS = {
   jump: { name:'LONG JUMP', lipX:950, finish:99999, cps:[],
@@ -523,7 +547,8 @@ let prevSnap = null;
 
 /* ---------- input ---------- */
 const input = { gas:false, brake:false, boost:false };
-let boostFuel = 1, wasBoosting = false, boostUsed = false;
+let boostFuel = 1, wasBoosting = false, boostUsed = false, boostingNow = false;
+let wShift = 0;   // rider weight transfer: + back (gas) / - forward (brake)
 let keyLean = 0;                       // keyboard lean (desktop testing)
 let wheelLeanVal = 0;                  // scroll-wheel lean (the R1 way)
 const SENS = [ {step:0.14, decay:0.7}, {step:0.22, decay:1.0}, {step:0.34, decay:1.35}, {step:0.50, decay:1.7} ];
@@ -564,7 +589,14 @@ function physicsStep(dt) {
     const dampAmt = Math.max(-0.35, Math.min(0.35, -angVel * 0.18)) * (Math.abs(leanSm) > 0.7 ? 0.3 : 1);
     couple += dampAmt;
   }
+  /* weight transfer (the Trials feel): gas loads the rear tyre — the nose lifts and
+     wheelies hold; braking dives the front — the rear lifts for stoppies and pivots */
+  if (groundedPre) {
+    if (thrSm > 0.15 && rearContact) couple -= 0.26 * thrSm;
+    if (input.brake && frontContact && spdC > 60) couple += 0.38;
+  }
   couple = Math.max(groundedPre ? -1.55 : -2.6, Math.min(groundedPre ? 1.55 : 2.6, couple));
+  { const wTgt = Math.max(-1, Math.min(1, thrSm * 0.85 - (input.brake ? 0.85 : 0))); wShift += (wTgt - wShift) * Math.min(1, 7 * dt); }
 
   const wheels = [ { w:rear, isRear:true }, { w:front, isRear:false } ];
   /* bunny hop: lean flick (back -> forward) or queued impulse (K / double-tap GAS) */
@@ -584,10 +616,10 @@ function physicsStep(dt) {
     const thB = Math.atan2(front.y - rear.y, front.x - rear.x);
     const bx = Math.cos(thB) * 2000 * dt * dt, by = Math.sin(thB) * 2000 * dt * dt;
     rear.x += bx; rear.y += by; front.x += bx; front.y += by;
-    boostUsed = true;
+    boostUsed = true; boostingNow = true;
     if (!wasBoosting) beep(150, 0.28, 'sawtooth', 0.05, 420);
     wasBoosting = true;
-    if (SETTINGS.fx) for (let i = 0; i < 2; i++) particles.push({ x: rear.x - Math.cos(thB) * 22, y: rear.y - Math.sin(thB) * 22 + 2, vx: -Math.cos(thB) * 190 + (Math.random() * 50 - 25), vy: -Math.sin(thB) * 190 + (Math.random() * 50 - 25), life: 0.22 + Math.random() * 0.12, age: 0, r: 3 + Math.random() * 2.5, trail: Math.random() < 0.5 ? '#ff7a1a' : '#ffd23f' });
+    if (SETTINGS.fx) for (let i = 0; i < 2; i++) particles.push({ x: rear.x - Math.cos(thB) * 22, y: rear.y - Math.sin(thB) * 22 + 2, vx: -Math.cos(thB) * 190 + (Math.random() * 50 - 25), vy: -Math.sin(thB) * 190 + (Math.random() * 50 - 25), life: 0.3 + Math.random() * 0.15, age: 0, r: 4.5 + Math.random() * 3, trail: Math.random() < 0.5 ? '#ff7a1a' : '#ffd23f' });
   } else wasBoosting = false;
   { // lean couple acts along the FRAME's up axis — a pure torque at any orientation
     const thN = Math.atan2(front.y - rear.y, front.x - rear.x);
@@ -987,8 +1019,8 @@ function draw(a, dtF) {
   const rv = velOf(rear, SUB), fv = velOf(front, SUB);
   const mvx = (rv.x + fv.x) / 2, mvy = (rv.y + fv.y) / 2;
 
-  const txC = mx + mvx * 0.38, tyC = my - 26 + mvy * 0.10;
-  camX += (txC - camX) * (1 - Math.exp(-6 * dtF));
+  const txC = mx + Math.min(mvx * 0.38, 150), tyC = my - 26 + mvy * 0.10;   // look-ahead hard-capped: at boost speed the lead must not outrun the frame
+  camX += (txC - camX) * (1 - Math.exp(-6 * dtF));   // camera hurries at boost speed so the bike (and its flame) stays in frame
   camY += (tyC - camY) * (1 - Math.exp(-4.5 * dtF));
   if (MODE.kind === 'flip') { /* camera follows the stunt loop like other modes */ }
   shake = Math.max(0, shake - dtF * 16);
@@ -1271,6 +1303,7 @@ function draw(a, dtF) {
     ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
     ctx.fillText(boostFuel > 0 ? 'ROCKET BOOST — HOLD B' : 'BOOST SPENT', VW / 2, by + 19);
   }
+  boostingNow = false;
   if (engOsc) engineUpdate(thrSm, mvx);
 }
 function drawTyre(x, y) {
@@ -1298,18 +1331,51 @@ function drawBikePreview() {
 function drawBike(rx, ry, fx, fy, ghost) {
   const sq = ghost ? 0 : squat;
   if (sq > 0.02) { const mx0 = (rx + fx) / 2, my0 = (ry + fy) / 2; rx += (mx0 - rx) * sq * 0.13; ry += (my0 - ry) * sq * 0.13; fx += (mx0 - fx) * sq * 0.13; fy += (my0 - fy) * sq * 0.13; }
-  const FC = ghost ? '#aebfd4' : GARAGE.frame, RC = ghost ? '#8fa3bd' : GARAGE.rider, HC = ghost ? '#aebfd4' : GARAGE.helm, WC = ghost ? '#aebfd4' : GARAGE.wheel;
+  let FC = ghost ? '#aebfd4' : GARAGE.frame, RC = ghost ? '#8fa3bd' : GARAGE.rider, HC = ghost ? '#aebfd4' : GARAGE.helm, WC = ghost ? '#aebfd4' : GARAGE.wheel;
+  if (!ghost && FC === 'anim:galaxy') FC = 'hsl(' + Math.round(258 + Math.sin(runClock * 1.7) * 34) + ',85%,' + Math.round(58 + Math.sin(runClock * 2.3) * 8) + '%)';
+  if (!ghost && FC === 'anim:molten') FC = 'hsl(' + Math.round(18 + Math.sin(runClock * 2.6) * 10) + ',95%,' + Math.round(52 + Math.sin(runClock * 3.1) * 7) + '%)';
   if (ghost) ctx.globalAlpha = 0.35;
   const th = Math.atan2(fy - ry, fx - rx);
   const cos = Math.cos(th), sin = Math.sin(th);
   const mx = (rx + fx) / 2, my = (ry + fy) / 2;
   const L = (lx, ly) => [mx + cos * lx - sin * ly, my + sin * lx + cos * ly];
   ctx.lineCap = 'round';
-  // suspension arms to the wheels
   const seat = L(-13, -13), tank = L(9, -15), bar = L(23, -21), peg = L(-2, -1);
+  // rocket flame jet (Long Jump booster firing)
+  if (!ghost && boostingNow) {
+    const ex = L(-25, -3), flick = 36 + Math.random() * 18;
+    const tip = L(-25 - flick, -3 + (Math.random() * 4 - 2));
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(255,90,10,0.6)';
+    ctx.beginPath(); ctx.moveTo(ex[0], ex[1] - 8); ctx.lineTo(tip[0], tip[1]); ctx.lineTo(ex[0], ex[1] + 8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,190,60,0.85)';
+    const tip2 = L(-25 - flick * 0.6, -3);
+    ctx.beginPath(); ctx.moveTo(ex[0], ex[1] - 5); ctx.lineTo(tip2[0], tip2[1]); ctx.lineTo(ex[0], ex[1] + 5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,240,200,0.95)';
+    const tip3 = L(-25 - flick * 0.3, -3);
+    ctx.beginPath(); ctx.moveTo(ex[0], ex[1] - 2.5); ctx.lineTo(tip3[0], tip3[1]); ctx.lineTo(ex[0], ex[1] + 2.5); ctx.closePath(); ctx.fill();
+    // speed streaks streaming past the bike while the rocket burns
+    ctx.strokeStyle = 'rgba(160,220,255,0.5)'; ctx.lineWidth = 2;
+    for (let k = 0; k < 3; k++) {
+      const sy = -14 + k * 13 + Math.random() * 5, sx0 = -30 - Math.random() * 25;
+      const a = L(sx0 - 34, sy), b = L(sx0, sy);
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // swingarm + fork + engine + exhaust
   ctx.strokeStyle = '#9aa0b5'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(peg[0], peg[1]); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
+  ctx.strokeStyle = '#6a7080'; ctx.lineWidth = 1.6;
+  const fork2 = L(20, -19);
+  ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fork2[0], fork2[1]); ctx.stroke();
+  const eng = L(-3, -5);
+  ctx.fillStyle = '#2c2f38'; ctx.fillRect(eng[0] - 4, eng[1] - 3, 9, 7);
+  const exh = L(-14, -7), muff = L(-25, -3);
+  ctx.strokeStyle = '#c8ccd4'; ctx.lineWidth = 2.6;
+  ctx.beginPath(); ctx.moveTo(eng[0], eng[1]); ctx.lineTo(exh[0], exh[1]); ctx.lineTo(muff[0], muff[1]); ctx.stroke();
+  ctx.fillStyle = '#8a8f99'; ctx.beginPath(); ctx.arc(muff[0], muff[1], 2.6, 0, Math.PI * 2); ctx.fill();
   for (const w of [[rx, ry], [fx, fy]]) {
     ctx.beginPath(); ctx.arc(w[0], w[1], WHEEL_R, 0, Math.PI * 2);
     ctx.fillStyle = '#191919'; ctx.fill();
@@ -1320,22 +1386,49 @@ function drawBike(rx, ry, fx, fy, ghost) {
       ctx.moveTo(w[0], w[1]); ctx.lineTo(w[0] + Math.cos(a) * WHEEL_R * 0.8, w[1] + Math.sin(a) * WHEEL_R * 0.8);
     }
     ctx.strokeStyle = '#8a8a8a'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(w[0], w[1], 2.4, 0, Math.PI * 2); ctx.fillStyle = '#cfd3da'; ctx.fill();
   }
   ctx.strokeStyle = FC; ctx.lineWidth = 4.5;
   ctx.beginPath(); ctx.moveTo(peg[0], peg[1]); ctx.lineTo(tank[0], tank[1]); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
   ctx.strokeStyle = '#22242e'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(seat[0], seat[1]); ctx.lineTo(tank[0], tank[1]); ctx.stroke();
-  const hip = L(-7, -23 + sq * 5), shoulder = L(6, -36 + sq * 4), head = L(10, -44 + sq * 4), knee = L(8, -14);
+  // number plate
+  const plate = L(15, -17);
+  ctx.fillStyle = ghost ? '#aebfd4' : '#eef1f4';
+  ctx.beginPath(); ctx.arc(plate[0], plate[1], 3.4, 0, Math.PI * 2); ctx.fill();
+  // rider — body shifts with weight transfer (wShift)
+  const ws = ghost ? 0 : wShift;
+  const hip = L(-7 + ws * 4, -23 + sq * 5), shoulder = L(6 + ws * 5, -36 + sq * 4), head = L(10 + ws * 5, -44 + sq * 4), knee = L(8 + ws * 2, -14);
   ctx.strokeStyle = RC; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(knee[0], knee[1]); ctx.lineTo(peg[0], peg[1]); ctx.stroke();
   ctx.lineWidth = 6.5;
   ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(shoulder[0], shoulder[1]); ctx.stroke();
   ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(shoulder[0], shoulder[1]); ctx.lineTo(bar[0], bar[1]); ctx.stroke();
+  // chest stripe in helm colour
+  const ch1 = L(0 + ws * 4.6, -31 + sq * 4), ch2 = L(4 + ws * 4.9, -27 + sq * 4);
+  ctx.strokeStyle = HC; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(ch1[0], ch1[1]); ctx.lineTo(ch2[0], ch2[1]); ctx.stroke();
+  // boot + glove
+  ctx.fillStyle = '#17181f';
+  ctx.beginPath(); ctx.arc(peg[0], peg[1], 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bar[0], bar[1], 2.6, 0, Math.PI * 2); ctx.fill();
+  // helmet + visor + peak
   ctx.beginPath(); ctx.arc(head[0], head[1], 6.5, 0, Math.PI * 2);
   ctx.fillStyle = HC; ctx.fill();
   ctx.fillStyle = '#14161f';
   ctx.fillRect(head[0] + 1, head[1] - 2, 6, 3);
+  const pk = L(17 + ws * 5, -46 + sq * 4);
+  ctx.strokeStyle = HC; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(head[0] + 2, head[1] - 4); ctx.lineTo(pk[0], pk[1]); ctx.stroke();
+  // Demon Horns helm: the horns are part of the helmet
+  if (!ghost && GARAGE.helm === '#c21725') {
+    ctx.fillStyle = '#8f1019';
+    const h1 = L(4 + ws * 5, -48 + sq * 4), h2 = L(1 + ws * 5, -55 + sq * 4), h3 = L(9 + ws * 5, -50 + sq * 4);
+    ctx.beginPath(); ctx.moveTo(h1[0], h1[1]); ctx.lineTo(h2[0], h2[1]); ctx.lineTo(h3[0], h3[1]); ctx.closePath(); ctx.fill();
+    const h4 = L(13 + ws * 5, -49 + sq * 4), h5 = L(15 + ws * 5, -56 + sq * 4), h6 = L(17 + ws * 5, -49 + sq * 4);
+    ctx.beginPath(); ctx.moveTo(h4[0], h4[1]); ctx.lineTo(h5[0], h5[1]); ctx.lineTo(h6[0], h6[1]); ctx.closePath(); ctx.fill();
+  }
   if (ghost) ctx.globalAlpha = 1;
 }
 function updateHUD() {
@@ -1473,6 +1566,11 @@ const POOL = [
   { cat:'wheel', name:'Magenta Rims', color:'#e83fd0', r:2 }, { cat:'wheel', name:'Gold Rims', color:'#ffcf3f', r:2 },
   { cat:'trail', name:'Ember Trail', color:'#ff8a3f', r:1 }, { cat:'trail', name:'Neon Cyan Trail', color:'#2fe8ff', r:1 },
   { cat:'trail', name:'Plasma Trail', color:'#b26bff', r:2 }, { cat:'trail', name:'Starlight Trail', color:'#ffd94f', r:3 },
+  { cat:'frame', name:'Molten Core', color:'anim:molten', r:2 }, { cat:'frame', name:'Galaxy Shift', color:'anim:galaxy', r:3 },
+  { cat:'rider', name:'Skeleton Crew', color:'#ddd6c2', r:2 }, { cat:'rider', name:'Neon Spectre', color:'#39ffb0', r:3 },
+  { cat:'helm', name:'Demon Horns', color:'#c21725', r:2 }, { cat:'helm', name:'Skull King', color:'#ece7db', r:3 },
+  { cat:'wheel', name:'Inferno Rims', color:'#ff5a1a', r:2 }, { cat:'wheel', name:'Void Rims', color:'#7a2bff', r:3 },
+  { cat:'trail', name:'Toxic Trail', color:'#8aff3a', r:1 }, { cat:'trail', name:'Lightning Trail', color:'#bfe8ff', r:2 },
 ];
 function itemsFor(cat) {
   return STOCK[cat].map(([name, color]) => ({ cat, name, color, r: -1 }))
@@ -1512,7 +1610,7 @@ function buildItems(rowId, cat) {
     const owned = it.r < 0 || GARAGE.owned[it.name];
     const d = document.createElement('div');
     d.className = 'sw' + (GARAGE[cat] === it.color ? ' sel' : '') + (owned ? '' : ' locked');
-    d.style.background = it.color === 'none' ? '#3a3f46' : it.color;
+    d.style.background = it.color === 'none' ? '#3a3f46' : it.color === 'anim:galaxy' ? 'linear-gradient(135deg,#2b1055,#7597de)' : it.color === 'anim:molten' ? 'linear-gradient(135deg,#7a1503,#ff7a1a)' : it.color;
     if (!owned) { d.style.borderColor = RARITY_C[it.r]; d.textContent = '🔒'; }
     d.title = it.name;
     d.addEventListener('click', () => {
@@ -1668,7 +1766,6 @@ window.__game = {
   restart: () => restartRun(),
 };
 function fanfare() { beep(660, 0.1, 'square', 0.05); setTimeout(() => beep(880, 0.1, 'square', 0.05), 100); setTimeout(() => beep(1320, 0.18, 'square', 0.05), 200); }
-
 </script>
 </body>
 </html>
