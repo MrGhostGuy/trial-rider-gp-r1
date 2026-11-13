@@ -45,3 +45,10 @@ Faults send you back to the last checkpoint and add +5s to your medal time.
 - **Two EXTREME tracks**: T8 VERTIGO FOUNDRY (14,200) and T9 NINJA RIDGE (16,800) — hop gaps you can't roll, step-up staircases, short-platform precision crosses, a mover over a void, a mud climb, a curved near-vertical wall. Advanced mechanics are mandatory; the test bot finishes both (with cooldown hop tech), and clean 0-fault runs are on record.
 - **Detailed rider + bike**: suit with chest stripe, helmet peak, boots and gloves, engine block, exhaust with muffler, twin front forks, spoked hubs, number plate.
 - **Crates grew**: 32 cosmetics — animated Galaxy Shift (LEGENDARY) and Molten Core frames, Demon Horns helm (with actual horns), Skull King, Neon Spectre, Void Rims, Inferno Rims, Lightning and Toxic trails.
+
+## v9 — no more safety nets (2026-11-12)
+- **Every floating platform now has real danger under it.** The audit found the big crosses were honest but plenty of smaller platforms still had track underneath: T6's beam floated 12 units over a bump, T7's beam had barrels parked under it, and five mover bridges (T2/T3/T5/T7) were decorative high lines you could ride under or fall off for free.
+- **Conversions**: T2, T3 and T5 movers became ramp-launched floater crosses over chasms (350/360/280 wide — too far to jump, the platforms are the only way; negative-tested: remove the platforms and the test bot fault-loops forever). T6 and T7 beams became chasm crosses. T7's high mover line became a cross too.
+- **Mover pits became fault pits**: T4, T6 and T7 mover bridges now span deepened pits with void floors — fall off the mover and you fault instead of riding out. Movers were widened so the exit is bridged, and T7's pit checkpoint moved out of the pit (7200 → 7140).
+- **Remix lines too**: remix floater lines now get a launch ramp and a chasm cut under them at runtime (skipped only where a checkpoint, seesaw, mover or existing hazard sits in the span, so a respawn can never land you in a chasm).
+- All 9 career tracks + skill games bot-verified again after the surgery.
