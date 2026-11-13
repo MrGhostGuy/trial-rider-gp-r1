@@ -28,6 +28,7 @@
          display:none; align-items:center; justify-content:center; user-select:none; touch-action:none; }
   .tbtn.on { background:rgba(254,80,0,.75); border-color:#ffb27a; }
   #bGas { right:8px; bottom:10px; }
+  #bBoost { left:50%; transform:translateX(-50%); bottom:10px; width:78px; display:none; background:#7a2a08; }
   #bBrake { left:8px; bottom:10px; }
   #bMenu { right:6px; top:30px; width:30px; height:30px; font-size:13px; border-radius:50%; }
   /* ---------- Screens ---------- */
@@ -77,11 +78,12 @@
   <div id="msg"></div>
   <div id="leanBar"><div class="tick"></div><div id="leanFill"></div></div>
   <div class="tbtn" id="bBrake">BRAKE</div>
+  <div class="tbtn" id="bBoost">BOOST 🚀</div>
   <div class="tbtn" id="bGas">GAS</div>
   <div class="tbtn" id="bMenu">⏸</div>
 
   <div class="screen show" id="scrTitle">
-    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V6</div></div>
+    <div class="logo"><div class="t1">TRIAL <span>RIDER</span> GP</div><div class="t2">R1 EDITION · V7</div></div>
     <button class="mi sel" data-act="career">🏁 CAREER<small>7 tracks · medals · unlocks · ghost racing</small></button>
     <button class="mi" data-act="skills">🎯 SKILL GAMES<small>Long Jump · Flip Frenzy · Hill Climb</small></button>
     <button class="mi" data-act="garage">🎨 GARAGE<small>Colours · crates · trails</small></button>
@@ -159,6 +161,8 @@
       <b>Daily Climb</b> — one seeded hill per day; set the best you can, medals pay fresh bolts daily.<br>
       <b>Remix</b> — Settings toggle: career tracks shuffle their logs and barrels every run, and scatter bonus ramps and floating platform lines over the flat stretches. Pays bolts, never touches your records.<br>
       <b>Lava crosses</b> — on the late tracks, ride the ramp and hop the floating platforms across the lava. Touching the lava is a fault, so commit to the line.<br>
+      <b>Void crosses</b> — every track now has platform crosses over open chasms: the terrain below is GONE, so falling short is a fault. The ramp launches you in — trust it.<br>
+      <b>Rocket boost</b> — Long Jump only: hold <b>B</b> / Shift or the BOOST pedal for one tank of rocket thrust. Boost on the run-up and through the lip for max distance (about double!).<br>
       <b>Achievements</b> — 8 trophies in the Garage pay bonus bolts.<br>
       <b>Desktop keys</b> — W/↑ gas, S/↓ brake, A/D or ←/→ lean, R restart, C checkpoint restart, K hop, Esc pause.<br>
       Tip: ease off the gas before a drop, and lean back early on climbs — momentum is everything.
@@ -287,68 +291,73 @@ function CR(pts, x) {
 const TRACKS = [
   { name:'TRAINING GROUNDS', sub:'Learn the ropes — rollers, steps, first seesaw',
     sky:['#2a3a6e','#5a4a86','#c97a5a'], hill:'rgba(20,26,52,0.55)', finish:4300,
-    cps:[1200, 2300, 3300],
-    pts:[[-300,300],[350,300],[470,268],[590,300],[720,318],[840,282],[960,300],[1120,300],[1190,238],[1360,238],[1450,300],[1600,300],[1700,272],[1780,244],[1860,216],[1940,216],[2050,268],[2180,306],[2320,300],[2480,284],[2570,300],[2660,284],[2750,300],[2900,300],[3050,262],[3200,300],[3380,300],[3560,272],[3720,300],[3900,282],[4060,300],[4300,300],[4700,300]],
-    seesaws:[{x:2900, y:288, len:150}], barrels:[{x:3420},{x:3470}], tires:[{x0:2030, x1:2200}],
-    logs:[{x:2240, r:15, s:'log'}], mud:[{x0:2620, x1:2820}], shelves:[{x0:3360, x1:3560, y:262}],
+    cps:[1200, 2300, 3250],
+    pts:[[-300,300],[350,300],[470,268],[590,300],[720,318],[840,282],[960,300],[1120,300],[1190,238],[1360,238],[1450,300],[1600,300],[1700,272],[1780,244],[1860,216],[1940,216],[2050,268],[2180,306],[2320,300],[2480,284],[2570,300],[2660,284],[2750,300],[2900,300],[3050,262],[3200,300],[3380,300],[3400,300],[3412,720],[3568,720],[3580,284],[3720,300],[3900,282],[4060,300],[4300,300],[4700,300]],
+    seesaws:[{x:2900, y:288, len:150}], barrels:[], tires:[{x0:2030, x1:2200}],
+    logs:[{x:2240, r:15, s:'log'}], mud:[{x0:2620, x1:2820}], shelves:[{x0:3420, x1:3510, y:264, tilt:2, float:1},{x0:3520, x1:3600, y:278, tilt:-2, float:1}],
+    ramps:[{x:1040, w:70, h:26},{x:3300, w:75, h:30}], voids:[{x0:3400, x1:3580, y:380}],
     pars:{ gold:17, silver:23, bronze:34 } },
   { name:'ROCKY QUARRY', sub:'Barrel pit, seesaw gap, the big wall',
-    sky:['#3a2b52','#7a4460','#e08a4e'], hill:'rgba(30,20,44,0.55)', finish:5700,
-    cps:[1300, 2560, 3900, 4900],
-    pts:[[-300,300],[320,300],[440,262],[560,300],[700,322],[830,278],[960,300],[1130,300],[1210,232],[1400,232],[1500,300],[1660,306],[1800,262],[1920,214],[2040,208],[2160,262],[2300,300],[2480,300],[2620,266],[2740,300],[2920,300],[3080,300],[3240,282],[3360,300],[3520,300],[3660,252],[3800,196],[3940,190],[4080,240],[4240,300],[4420,300],[4580,272],[4660,180],[4740,168],[4880,236],[5020,300],[5200,284],[5290,300],[5380,284],[5470,300],[5700,300],[6100,300]],
+    sky:['#3a2b52','#7a4460','#e08a4e'], hill:'rgba(30,20,44,0.55)', finish:5700, theme:{ ground:'#6e5136', edge:'#b08d4f', strata:'rgba(0,0,0,0.20)', decor:'rocks' },
+    cps:[1300, 2280, 3900, 4900],
+    pts:[[-300,300],[320,300],[440,262],[560,300],[700,322],[830,278],[960,300],[1130,300],[1210,232],[1400,232],[1500,300],[1660,306],[1800,262],[1920,214],[2040,208],[2160,262],[2300,300],[2400,300],[2412,720],[2568,720],[2580,300],[2620,266],[2740,300],[2920,300],[3080,300],[3240,282],[3360,300],[3520,300],[3660,252],[3800,196],[3940,190],[4080,240],[4240,300],[4420,300],[4580,272],[4660,180],[4740,168],[4880,236],[5020,300],[5200,284],[5290,300],[5380,284],[5470,300],[5700,300],[6100,300]],
     seesaws:[{x:2920, y:262, len:170}], barrels:[{x:3130},{x:3190},{x:3255}], tires:[{x0:4060, x1:4260}],
     logs:[{x:1130, r:18, s:'pipe'},{x:3380, r:12, s:'tyre'},{x:3430, r:16, s:'tyre'}], mud:[{x0:1660, x1:1800}], movers:[{x:4160, y:208, w:120, amp:14, per:2.6}],
+    shelves:[{x0:2430, x1:2520, y:266, tilt:2, float:1},{x0:2530, x1:2610, y:280, tilt:-2, float:1}],
+    ramps:[{x:2340, w:75, h:28},{x:3560, w:70, h:26}], voids:[{x0:2400, x1:2580, y:380}],
     pars:{ gold:30, silver:40, bronze:58 } },
   { name:'SUMMIT RIDGE', sub:'Everything, harder — twin seesaws, tyre hops, the leap',
-    sky:['#1d2447','#413a6e','#8a5a7a'], hill:'rgba(14,18,38,0.6)', finish:6900,
+    sky:['#1d2447','#413a6e','#8a5a7a'], hill:'rgba(14,18,38,0.6)', finish:6900, theme:{ ground:'#5f5a63', edge:'#e8eef4', strata:'rgba(255,255,255,0.10)', decor:'peaks' },
     cps:[1400, 2800, 4200, 5600],
-    pts:[[-300,300],[300,300],[420,258],[540,300],[690,326],[830,272],[970,300],[1140,300],[1220,224],[1420,224],[1520,300],[1700,300],[1800,258],[1900,206],[2020,196],[2160,250],[2320,302],[2500,300],[2640,268],[2760,300],[2940,300],[3120,300],[3260,276],[3380,300],[3560,282],[3680,300],[3860,300],[3980,238],[4120,182],[4280,176],[4440,232],[4600,300],[4780,300],[4900,262],[5020,300],[5180,300],[5340,274],[5440,178],[5520,168],[5680,240],[5840,300],[6020,300],[6160,276],[6280,300],[6440,284],[6560,300],[6900,300],[7300,300]],
-    seesaws:[{x:3030, y:264, len:160},{x:3860, y:262, len:160}], barrels:[{x:3420},{x:3480},{x:4740}], tires:[{x0:4420, x1:4620},{x0:5660, x1:5860}],
-    logs:[{x:2400, r:16, s:'log'}], mud:[{x0:2820, x1:2980}], shelves:[{x0:4700, x1:4960, y:258}], movers:[{x:6090, y:252, w:110, amp:14, per:2.4}],
+    pts:[[-300,300],[300,300],[420,258],[540,300],[690,326],[830,272],[970,300],[1140,300],[1220,224],[1420,224],[1520,300],[1700,300],[1800,258],[1900,206],[2020,196],[2160,250],[2320,302],[2500,300],[2640,268],[2760,300],[2940,300],[3120,300],[3260,276],[3380,300],[3560,282],[3680,300],[3860,300],[3980,238],[4120,182],[4280,176],[4440,232],[4600,300],[4780,300],[4840,300],[4852,730],[5008,730],[5020,300],[5180,300],[5340,274],[5440,178],[5520,168],[5680,240],[5840,300],[6020,300],[6160,276],[6280,300],[6440,284],[6560,300],[6900,300],[7300,300]],
+    seesaws:[{x:3030, y:264, len:160},{x:3860, y:262, len:160}], barrels:[{x:3420},{x:3480}], tires:[{x0:4420, x1:4620},{x0:5660, x1:5860}],
+    logs:[{x:2400, r:16, s:'log'}], mud:[{x0:2820, x1:2980}], shelves:[{x0:4860, x1:4950, y:262, tilt:2, float:1},{x0:4960, x1:5040, y:276, tilt:-2, float:1}], movers:[{x:6090, y:252, w:110, amp:14, per:2.4}],
+    ramps:[{x:2540, w:75, h:28},{x:4740, w:80, h:32}], voids:[{x0:4840, x1:5020, y:382}],
     pars:{ gold:25, silver:33, bronze:48 } },
   { name:'NEON FOUNDRY', sub:'Pipes, a mover pit, mud and beams — the full works',
-    sky:['#0e2231','#17384a','#b35a28'], hill:'rgba(8,18,26,0.6)', finish:6600,
+    sky:['#030712','#0a1830','#0d2f45'], hill:'rgba(4,10,24,0.7)', finish:6600, theme:{ ground:'#12141f', edge:'#22e6ff', strata:'rgba(34,230,255,0.10)', decor:'city', glow:1 },
     cps:[1500, 3000, 4500, 5800],
-    pts:[[-300,300],[300,300],[430,262],[560,300],[700,318],[830,300],[960,300],[1080,252],[1240,252],[1360,300],[1520,300],[1660,272],[1800,300],[1960,300],[2100,258],[2240,300],[2380,300],[2540,282],[2680,300],[2840,300],[2980,236],[3120,230],[3280,300],[3440,300],[3600,268],[3740,300],[3900,300],[4040,244],[4180,238],[4340,300],[4400,348],[4460,348],[4520,300],[4660,272],[4800,300],[4960,300],[5120,262],[5260,300],[5420,300],[5560,240],[5700,232],[5860,300],[6040,300],[6180,276],[6320,300],[6600,300],[7000,300]],
-    seesaws:[{x:3440, y:288, len:160}], barrels:[{x:1090},{x:2260},{x:4720}], tires:[{x0:3800, x1:3980}],
+    pts:[[-300,300],[300,300],[430,262],[560,300],[700,318],[830,300],[960,300],[1080,252],[1240,252],[1360,300],[1520,300],[1660,272],[1800,300],[1960,300],[2040,300],[2052,730],[2228,730],[2240,300],[2380,300],[2540,282],[2680,300],[2840,300],[2980,236],[3120,230],[3280,300],[3440,300],[3600,268],[3740,300],[3900,300],[4040,244],[4180,238],[4340,300],[4400,348],[4460,348],[4520,300],[4660,272],[4800,300],[4960,300],[5120,262],[5260,300],[5420,300],[5560,240],[5700,232],[5860,300],[6040,300],[6180,276],[6320,300],[6600,300],[7000,300]],
+    seesaws:[{x:3440, y:288, len:160}], barrels:[{x:1090},{x:4720}], tires:[{x0:3800, x1:3980}],
     logs:[{x:700, r:16, s:'pipe'},{x:1520, r:15, s:'log'},{x:5260, r:14, s:'tyre'}],
-    mud:[{x0:1620, x1:1780},{x0:5900, x1:6060}], shelves:[{x0:2060, x1:2280, y:258}],
+    mud:[{x0:1620, x1:1780},{x0:5900, x1:6060}], shelves:[{x0:2070, x1:2160, y:264, tilt:2, float:1},{x0:2170, x1:2250, y:278, tilt:-2, float:1}],
+    ramps:[{x:1880, w:80, h:32},{x:6080, w:75, h:28}], voids:[{x0:2040, x1:2240, y:380}],
     movers:[{x:4430, y:318, w:130, amp:10, per:2.8}],
     pars:{ gold:23, silver:31, bronze:46 } },
   { name:'DEEP QUARRY', sub:'Twin seesaws, log stairs, mud climbs — the quarry bites back',
-    sky:['#2e2140','#5e3350','#d97a44'], hill:'rgba(24,14,34,0.6)', finish:8400,
+    sky:['#2e2140','#5e3350','#d97a44'], hill:'rgba(24,14,34,0.6)', finish:8400, theme:{ ground:'#54382a', edge:'#a97a44', strata:'rgba(0,0,0,0.20)', decor:'rocks' },
     cps:[1500, 3100, 4700, 5900, 7600],
-    pts:[[-300,300],[320,300],[440,258],[560,300],[700,322],[830,276],[960,300],[1100,300],[1180,238],[1360,238],[1460,300],[1620,306],[1760,258],[1880,210],[2000,204],[2140,258],[2300,300],[2460,300],[2600,268],[2740,300],[2900,300],[3060,300],[3220,282],[3360,300],[3520,300],[3680,246],[3840,240],[4000,300],[4180,300],[4340,272],[4460,182],[4540,170],[4680,238],[4840,300],[5020,300],[5180,284],[5270,300],[5360,284],[5450,300],[5620,300],[5780,262],[5940,300],[6120,300],[6180,352],[6360,352],[6440,300],[6600,300],[6760,252],[6920,246],[7080,300],[7260,300],[7420,268],[7580,300],[7760,282],[7920,300],[8400,300],[8800,300]],
-    seesaws:[{x:2900, y:288, len:160},{x:3060, y:288, len:160}], barrels:[{x:2480},{x:4960},{x:5020},{x:5080}], tires:[{x0:6560, x1:6740}],
+    pts:[[-300,300],[320,300],[440,258],[560,300],[700,322],[830,276],[960,300],[1100,300],[1180,238],[1360,238],[1460,300],[1620,306],[1760,258],[1880,210],[2000,204],[2140,258],[2300,300],[2460,300],[2600,268],[2740,300],[2900,300],[3060,300],[3220,282],[3360,300],[3520,300],[3680,246],[3840,240],[4000,300],[4180,300],[4340,272],[4460,182],[4540,170],[4680,238],[4840,300],[4900,300],[4912,730],[5128,730],[5140,300],[5180,284],[5270,300],[5360,284],[5450,300],[5620,300],[5780,262],[5940,300],[6120,300],[6180,352],[6360,352],[6440,300],[6600,300],[6760,252],[6920,246],[7080,300],[7260,300],[7420,268],[7580,300],[7760,282],[7920,300],[8400,300],[8800,300]],
+    seesaws:[{x:2900, y:288, len:160},{x:3060, y:288, len:160}], barrels:[{x:2480}], tires:[{x0:6560, x1:6740}],
     logs:[{x:1050, r:17, s:'pipe'},{x:3560, r:12, s:'log'},{x:3625, r:13, s:'log'}],
-    mud:[{x0:1560, x1:1740},{x0:7160, x1:7340}], shelves:[{x0:4880, x1:5140, y:256},{x0:6190, x1:6300, y:270, tilt:3, float:1},{x0:6345, x1:6445, y:282, tilt:-3, float:1}],
-    ramps:[{x:6030, w:80, h:30}], hazards:[{x0:6180, x1:6360}],
+    mud:[{x0:1560, x1:1740},{x0:7160, x1:7340}], shelves:[{x0:4900, x1:4990, y:258, tilt:2, float:1},{x0:5000, x1:5090, y:272, tilt:-2, float:1},{x0:5100, x1:5180, y:284, float:1},{x0:6190, x1:6300, y:270, tilt:3, float:1},{x0:6345, x1:6445, y:282, tilt:-3, float:1}],
+    ramps:[{x:4800, w:80, h:34},{x:6030, w:80, h:30},{x:6640, w:75, h:28}], hazards:[{x0:6180, x1:6360}], voids:[{x0:4900, x1:5140, y:384}],
     movers:[{x:5660, y:250, w:120, amp:16, per:2.6}],
     pars:{ gold:31, silver:42, bronze:64 } },
   { name:'MIDNIGHT FOUNDRY', sub:'Seesaw-to-beam combos, a bridged pit, twin walls',
-    sky:['#0a1420','#122838','#7a3a20'], hill:'rgba(4,10,16,0.65)', finish:10200,
+    sky:['#0a1420','#122838','#7a3a20'], hill:'rgba(4,10,16,0.65)', finish:10200, theme:{ ground:'#26262c', edge:'#c8541e', strata:'rgba(255,120,40,0.08)', decor:'factory' },
     cps:[1700, 3400, 5100, 5900, 8500],
-    pts:[[-300,300],[300,300],[430,254],[560,300],[700,324],[840,300],[980,300],[1090,246],[1250,246],[1370,300],[1540,300],[1680,266],[1820,300],[1980,300],[2120,252],[2260,300],[2420,300],[2580,278],[2720,300],[2880,300],[3040,238],[3200,232],[3360,300],[3540,300],[3700,266],[3840,300],[4000,300],[4140,240],[4300,234],[4460,300],[4640,300],[4800,272],[4920,180],[5000,168],[5140,236],[5300,300],[5480,300],[5640,282],[5730,300],[5820,282],[5910,300],[6080,300],[6160,358],[6340,358],[6420,300],[6580,300],[6640,352],[6720,352],[6800,300],[6940,246],[7100,240],[7260,300],[7440,270],[7600,300],[7760,300],[7920,262],[8080,300],[8240,300],[8400,244],[8560,238],[8720,300],[8900,300],[9060,272],[9220,300],[9400,300],[9580,276],[9740,300],[10200,300],[10600,300]],
-    seesaws:[{x:3460, y:288, len:160}], barrels:[{x:2540},{x:9200},{x:9280}], tires:[{x0:7740, x1:7900}],
+    pts:[[-300,300],[300,300],[430,254],[560,300],[700,324],[840,300],[980,300],[1090,246],[1250,246],[1370,300],[1540,300],[1680,266],[1820,300],[1980,300],[2120,252],[2260,300],[2420,300],[2580,278],[2720,300],[2880,300],[3040,238],[3200,232],[3360,300],[3540,300],[3700,266],[3840,300],[4000,300],[4140,240],[4300,234],[4460,300],[4640,300],[4800,272],[4920,180],[5000,168],[5140,236],[5300,300],[5480,300],[5640,282],[5730,300],[5820,282],[5910,300],[6080,300],[6160,358],[6340,358],[6420,300],[6580,300],[6640,352],[6720,352],[6800,300],[6940,246],[7100,240],[7260,300],[7440,270],[7600,300],[7760,300],[7920,262],[8080,300],[8240,300],[8400,244],[8560,238],[8720,300],[8900,300],[9060,272],[9140,290],[9152,730],[9368,730],[9380,300],[9400,300],[9580,276],[9740,300],[10200,300],[10600,300]],
+    seesaws:[{x:3460, y:288, len:160}], barrels:[{x:2540}], tires:[{x0:7740, x1:7900}],
     logs:[{x:700, r:16, s:'pipe'},{x:2940, r:12, s:'log'},{x:2995, r:13, s:'log'},{x:5680, r:13, s:'tyre'},{x:8260, r:15, s:'log'}],
-    mud:[{x0:1600, x1:1760},{x0:4520, x1:4660},{x0:7300, x1:7460}], shelves:[{x0:3620, x1:3860, y:254},{x0:9120, x1:9380, y:258},{x0:6130, x1:6220, y:264, tilt:3, float:1},{x0:6265, x1:6350, y:276, tilt:-6, float:1},{x0:6390, x1:6470, y:288, tilt:2, float:1}],
-    ramps:[{x:5990, w:80, h:34}], hazards:[{x0:6160, x1:6340}],
+    mud:[{x0:1600, x1:1760},{x0:4520, x1:4660},{x0:7300, x1:7460}], shelves:[{x0:3620, x1:3860, y:254},{x0:9170, x1:9260, y:262, tilt:2, float:1},{x0:9270, x1:9360, y:276, tilt:-2, float:1},{x0:9370, x1:9450, y:288, float:1},{x0:6130, x1:6220, y:264, tilt:3, float:1},{x0:6265, x1:6350, y:276, tilt:-6, float:1},{x0:6390, x1:6470, y:288, tilt:2, float:1}],
+    ramps:[{x:5360, w:75, h:28},{x:5990, w:80, h:34},{x:8980, w:80, h:32}], hazards:[{x0:6160, x1:6340}], voids:[{x0:9140, x1:9380, y:374}],
     movers:[{x:6680, y:316, w:140, amp:10, per:2.8}],
     pars:{ gold:41, silver:55, bronze:84 } },
   { name:'APEX RIDGE', sub:'The finale — triple seesaws, two walls, everything at once',
-    sky:['#160f2e','#33204e','#a03a50'], hill:'rgba(10,6,24,0.65)', finish:12400,
+    sky:['#160f2e','#33204e','#a03a50'], hill:'rgba(10,6,24,0.65)', finish:12400, theme:{ ground:'#463a4e', edge:'#e8a04c', strata:'rgba(0,0,0,0.18)', decor:'peaks' },
     cps:[1800, 3600, 5400, 7200, 9000, 10200],
-    pts:[[-300,300],[300,300],[420,246],[540,300],[690,330],[830,282],[970,300],[1130,300],[1210,230],[1390,230],[1490,300],[1660,308],[1800,254],[1920,204],[2040,196],[2180,252],[2340,302],[2520,300],[2660,264],[2800,300],[2960,300],[3120,300],[3300,282],[3460,300],[3620,300],[3780,240],[3940,234],[4100,300],[4280,300],[4440,268],[4560,176],[4640,164],[4780,234],[4940,300],[5120,300],[5280,280],[5370,300],[5460,280],[5550,300],[5720,300],[5880,256],[6040,300],[6220,300],[6380,270],[6540,300],[6700,300],[6860,238],[7020,232],[7180,300],[7240,354],[7320,354],[7440,300],[7600,264],[7760,300],[7940,300],[8100,248],[8260,242],[8420,300],[8600,300],[8760,270],[8880,178],[8960,166],[9100,236],[9260,300],[9440,300],[9600,274],[9760,300],[9940,300],[10100,250],[10260,244],[10420,300],[10500,360],[10720,360],[10800,300],[10920,300],[11080,300],[11240,262],[11400,300],[11560,282],[11720,300],[12400,300],[12800,300]],
-    seesaws:[{x:2960, y:288, len:160},{x:3120, y:288, len:160},{x:3300, y:282, len:150}], barrels:[{x:2620},{x:5000},{x:5070},{x:5140},{x:11120}], tires:[{x0:4240, x1:4400},{x0:9300, x1:9480}],
+    pts:[[-300,300],[300,300],[420,246],[540,300],[690,330],[830,282],[970,300],[1130,300],[1210,230],[1390,230],[1490,300],[1660,308],[1800,254],[1920,204],[2040,196],[2180,252],[2340,302],[2520,300],[2660,264],[2800,300],[2960,300],[3120,300],[3300,282],[3460,300],[3620,300],[3780,240],[3940,234],[4100,300],[4280,300],[4440,268],[4560,176],[4640,164],[4780,234],[4940,300],[5120,300],[5280,280],[5370,300],[5460,280],[5550,300],[5720,300],[5880,256],[6040,300],[6220,300],[6380,270],[6540,300],[6700,300],[6860,238],[7020,232],[7180,300],[7240,354],[7320,354],[7440,300],[7600,264],[7760,300],[7940,300],[8100,248],[8260,242],[8420,300],[8600,300],[8760,270],[8880,178],[8960,166],[9100,236],[9260,300],[9440,300],[9600,274],[9760,300],[9940,300],[10100,250],[10260,244],[10420,300],[10500,360],[10720,360],[10800,300],[10920,300],[11080,300],[11112,730],[11228,730],[11240,262],[11400,300],[11560,282],[11720,300],[12400,300],[12800,300]],
+    seesaws:[{x:2960, y:288, len:160},{x:3120, y:288, len:160},{x:3300, y:282, len:150}], barrels:[{x:2620},{x:5000},{x:5070},{x:5140}], tires:[{x0:4240, x1:4400},{x0:9300, x1:9480}],
     logs:[{x:1050, r:17, s:'pipe'},{x:1720, r:12, s:'log'},{x:1775, r:13, s:'log'},{x:5740, r:14, s:'tyre'},{x:8180, r:13, s:'log'},{x:8245, r:12, s:'log'},{x:9880, r:15, s:'log'}],
-    mud:[{x0:1580, x1:1740},{x0:5560, x1:5700},{x0:11400, x1:11560}], shelves:[{x0:4940, x1:5200, y:254},{x0:11000, x1:11240, y:256},{x0:10480, x1:10570, y:262, tilt:-6, float:1},{x0:10615, x1:10695, y:276, tilt:8, float:1},{x0:10740, x1:10820, y:288, tilt:0, float:1}],
-    ramps:[{x:10330, w:80, h:34}], hazards:[{x0:10500, x1:10720}],
+    mud:[{x0:1580, x1:1740},{x0:5560, x1:5700},{x0:11400, x1:11560}], shelves:[{x0:4940, x1:5200, y:254},{x0:11130, x1:11210, y:264, tilt:2, float:1},{x0:11220, x1:11300, y:254, tilt:-4, float:1},{x0:10480, x1:10570, y:262, tilt:-6, float:1},{x0:10615, x1:10695, y:276, tilt:8, float:1},{x0:10740, x1:10820, y:288, tilt:0, float:1}],
+    ramps:[{x:6280, w:75, h:28},{x:10330, w:80, h:34},{x:10990, w:80, h:32}], hazards:[{x0:10500, x1:10720}], voids:[{x0:11100, x1:11240, y:384}],
     movers:[{x:6580, y:246, w:120, amp:14, per:2.4},{x:7280, y:318, w:140, amp:12, per:2.6}],
     pars:{ gold:58, silver:78, bronze:118 } },
 ];
 const ARENAS = {
   jump: { name:'LONG JUMP', lipX:950, finish:99999, cps:[],
-    pts:[[-300,205],[300,205],[520,262],[700,322],[800,326],[880,300],[945,208],[985,196],[1120,300],[1330,352],[1700,362],[2400,362]] },
+    pts:[[-300,205],[300,205],[520,262],[700,322],[800,326],[850,306],[890,272],[922,232],[950,202],[982,192],[1120,300],[1330,352],[1700,362],[2400,362]] },
   flip: { name:'FLIP FRENZY', lipX:950, finish:99999, cps:[],
     pts:[[-300,205],[300,205],[520,262],[700,316],[800,322],[868,296],[908,258],[938,214],[962,192],[982,188],[1090,320],[1400,470],[2000,492],[2800,492]] },
   climb: { name:'HILL CLIMB', finish:99999, cps:[], pts:null }, // generated per run
@@ -358,13 +367,13 @@ function makeClimbPts(seed) {
   const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
   const b1 = 0.016 + rnd() * 0.006, b2 = 0.006 + rnd() * 0.003, p1 = rnd() * 6.28, p2 = rnd() * 6.28;
   const pts = [[-300,300],[260,300]];
-  let x = 260, y = 300;
+  let x = 260, y = 300, n = 0;
   while (x < 4400) {
-    x += 50;
+    x += 50; n++;
     const e = Math.pow(Math.min(1, (x - 260) / 3000), 1.15);
     const ang = 0.30 + 0.85 * e;                       // 17° steepening to ~66°
     y -= Math.tan(ang) * 50;
-    pts.push([x, y - Math.sin(x * b1 + p1) * 7 - Math.sin(x * b2 + p2) * 10]);
+    pts.push([x, y - Math.sin(x * b1 + p1) * 7 - Math.sin(x * b2 + p2) * 10 - (n % 12 === 6 ? 9 : 0)]);   // kicker lip every ~600
   }
   pts.push([4480, y - 300], [4900, y - 300]);           // the wall: nobody tops this
   return pts;
@@ -372,7 +381,7 @@ function makeClimbPts(seed) {
 
 /* ---------- live run state ---------- */
 let MODE = null;          // {kind:'track'|'jump'|'flip'|'climb', def, pts}
-let seesaws = [], barrels = [], logs = [], shelves = [], movers = [], mudZones = [], ramps = [], hazardZones = [];
+let seesaws = [], barrels = [], logs = [], shelves = [], movers = [], mudZones = [], ramps = [], hazardZones = [], voidZones = [];
 let camX = 0, camY = 200, shake = 0;
 function staticY(x) { return CR(MODE.pts, x); }
 function staticSlope(x) { return (staticY(x+3) - staticY(x-3)) / 6; }
@@ -437,6 +446,7 @@ function makeDynamics(def) {
   shelves = (def.shelves || []).map(s => ({ x0: s.x0, x1: s.x1, y: s.y, slope: Math.tan((s.tilt || 0) * Math.PI / 180), float: !!s.float }));
   ramps = (def.ramps || []).map(r => ({ x0: r.x, w: r.w, h: r.h, gy: staticY(r.x) }));
   hazardZones = def.hazards || [];
+  voidZones = def.voids || [];
   movers = (def.movers || []).map(m => ({ x0: m.x - m.w / 2, x1: m.x + m.w / 2, y: m.y, amp: m.amp, per: m.per, ph: m.ph || 0, curY: m.y }));
   mudZones = def.mud || [];
   if (MODE && MODE.remix) {
@@ -494,7 +504,7 @@ function startXForMode() {
 function resetRun(full) {
   spawnAt(startXForMode());
   if (full) {
-    faults = 0; time = 0; started = false; cpIndex = 0; lastCp = startXForMode();
+    faults = 0; time = 0; started = false; cpIndex = 0; lastCp = startXForMode(); boostFuel = 1; wasBoosting = false; boostUsed = false; $('bBoost').style.display = (MODE && MODE.kind === 'jump') ? 'block' : 'none';
     jumpState = 'run'; jumpDist = 0; landedTimer = 0; contactT = 0; airT = 0; airAng = 0; airTime = 0; flipScore = 0; flipTimeLeft = 75;
     climbBestX = 0; stallTime = 0; stalled = false; anchorX = startXForMode(); anchorT = runClock; runOver = false; RESULT = null;
     ghostRec = []; ghostTimer = 0; pendingBolts = 0;
@@ -512,7 +522,8 @@ function snap() { return { rx:rear.x, ry:rear.y, fx:front.x, fy:front.y }; }
 let prevSnap = null;
 
 /* ---------- input ---------- */
-const input = { gas:false, brake:false };
+const input = { gas:false, brake:false, boost:false };
+let boostFuel = 1, wasBoosting = false, boostUsed = false;
 let keyLean = 0;                       // keyboard lean (desktop testing)
 let wheelLeanVal = 0;                  // scroll-wheel lean (the R1 way)
 const SENS = [ {step:0.14, decay:0.7}, {step:0.22, decay:1.0}, {step:0.34, decay:1.35}, {step:0.50, decay:1.7} ];
@@ -567,6 +578,17 @@ function physicsStep(dt) {
       beep(280, 0.07, 'triangle', 0.05);
     }
   }
+  /* rocket booster (Long Jump only): thrust along the frame, one tank per attempt */
+  if (MODE && MODE.kind === 'jump' && input.boost && boostFuel > 0 && !runOver) {
+    boostFuel = Math.max(0, boostFuel - dt / 0.38);
+    const thB = Math.atan2(front.y - rear.y, front.x - rear.x);
+    const bx = Math.cos(thB) * 2000 * dt * dt, by = Math.sin(thB) * 2000 * dt * dt;
+    rear.x += bx; rear.y += by; front.x += bx; front.y += by;
+    boostUsed = true;
+    if (!wasBoosting) beep(150, 0.28, 'sawtooth', 0.05, 420);
+    wasBoosting = true;
+    if (SETTINGS.fx) for (let i = 0; i < 2; i++) particles.push({ x: rear.x - Math.cos(thB) * 22, y: rear.y - Math.sin(thB) * 22 + 2, vx: -Math.cos(thB) * 190 + (Math.random() * 50 - 25), vy: -Math.sin(thB) * 190 + (Math.random() * 50 - 25), life: 0.22 + Math.random() * 0.12, age: 0, r: 3 + Math.random() * 2.5, trail: Math.random() < 0.5 ? '#ff7a1a' : '#ffd23f' });
+  } else wasBoosting = false;
   { // lean couple acts along the FRAME's up axis — a pure torque at any orientation
     const thN = Math.atan2(front.y - rear.y, front.x - rear.x);
     const ux = Math.sin(thN), uy = -Math.cos(thN);
@@ -665,7 +687,7 @@ function physicsStep(dt) {
   /* speed governor + rotational damping (kills lip-flick spin) */
   {
     const rv = velOf(rear, dt), fv = velOf(front, dt);
-    const mvx = (rv.x + fv.x) / 2, MAXV = 475;
+    const mvx = (rv.x + fv.x) / 2, MAXV = (MODE && MODE.kind === 'jump' && boostUsed) ? 760 : 475;
     if (Math.abs(mvx) > MAXV) {
       const cut = (Math.abs(mvx) - MAXV) * Math.sign(mvx) * dt;
       rear.px += cut; front.px += cut;
@@ -689,7 +711,7 @@ function physicsStep(dt) {
       rear.px -= nx * fix * dt; rear.py -= ny * fix * dt;
     }
     for (const w of [rear, front]) {
-      const v = velOf(w, dt), sp = Math.hypot(v.x, v.y), MAXSP = 980;
+      const v = velOf(w, dt), sp = Math.hypot(v.x, v.y), MAXSP = (MODE && MODE.kind === 'jump' && boostUsed) ? 1040 : 980;
       if (sp > MAXSP) { const k = (sp - MAXSP) / sp; w.px += v.x * k * dt; w.py += v.y * k * dt; }
     }
   }
@@ -715,6 +737,7 @@ function physicsStep(dt) {
   if (stalled && thrSm > 0.5) { rear.px -= 6 * dt; front.px -= 6 * dt; }
   if (!anyContact) fallPeak = Math.max(fallPeak, vyNow);
   if (anyContact && !wasGrounded && fallPeak > 280) squat = Math.min(1, fallPeak / 950);
+  if (anyContact && !wasGrounded && fallPeak > 130 && SETTINGS.fx) { spawnDust(rear.x, rear.y + 13, 0); spawnDust(front.x, front.y + 13, 0); }
   if (anyContact && !wasGrounded && fallPeak > 430) {
     if (SETTINGS.fx !== 0) { shake = Math.min(6, fallPeak / 150); for (let i = 0; i < 10; i++) spawnDust(midX(), midY() + 16, 0); }
     beep(70, 0.12, 'sine', 0.09, 40);
@@ -738,6 +761,13 @@ function spawnDust(x, y, vx) {
                    life: 0.55 + Math.random() * 0.3, age: 0, r: 2 + Math.random() * 3.5 });
 }
 
+function spawnP(x, y, color, n, spd) {
+  if (!SETTINGS.fx) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = (0.3 + Math.random() * 0.7) * (spd || 120);
+    particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50, life: 0.5 + Math.random() * 0.5, age: 0, r: 1.8 + Math.random() * 2.2, trail: color });
+  }
+}
 function doFault() {
   faults++; $('hFaults').textContent = faults;
   showMsg('FAULT!', MODE.kind === 'track' ? 'back to the last checkpoint' : '');
@@ -785,6 +815,7 @@ function gameLogic(dt, th, dTh) {
     const cps = MODE.def.cps;
     while (cpIndex < cps.length && x > cps[cpIndex]) {
       lastCp = cps[cpIndex]; cpIndex++;
+      spawnP(cps[cpIndex - 1], staticY(cps[cpIndex - 1]) - 26, '#ffd23f', 10, 110);
       showMsg('CHECKPOINT', '');
       beep(880, 0.09, 'square', 0.045); setTimeout(() => beep(1320, 0.12, 'square', 0.045), 70);
       $('hCp').textContent = 'CP ' + cpIndex + '/' + cps.length;
@@ -834,7 +865,7 @@ function gameLogic(dt, th, dTh) {
         fanfare(); return;
       }
     }
-    if (jumpState !== 'landed' && x > 1500) { endRun('NO JUMP', 'You rolled past the landing — ride again'); return; }
+    if (jumpState !== 'landed' && x > 2300) { endRun('NO JUMP', 'You rolled past the landing — ride again'); return; }
   }
   else if (MODE.kind === 'flip') {
     if (started) {
@@ -878,6 +909,9 @@ function gameLogic(dt, th, dTh) {
   /* lava hazard: touching the floor inside a hazard zone is a fault */
   if (hazardZones.length && anyContact && midY() > staticY(x) - 26 && hazardZones.some(z => x >= z.x0 && x <= z.x1)) doFault();
 
+  /* void: falling below a platform line faults you back to the checkpoint */
+  if (voidZones.length) { const vy3 = midY(); for (const z of voidZones) if (x >= z.x0 && x <= z.x1 && vy3 > z.y) { doFault(); break; } }
+
   /* fault check (all modes) */
   const cos = Math.cos(th), sin = Math.sin(th);
   const hx = midX() + cos * 2 - sin * -38, hy = midY() + sin * 2 + cos * -38;
@@ -904,6 +938,13 @@ function showResult() {
 }
 function hideResult() { $('resultCard').style.display = 'none'; RESULT = null; }
 function endRun(title, sub) {
+  $('bBoost').style.display = 'none';
+  if (MODE && SETTINGS.fx) {
+    const gold = title.indexOf('GOLD') >= 0;
+    spawnP(midX(), midY() - 10, '#ffd23f', gold ? 26 : 12, 170);
+    spawnP(midX(), midY() - 10, '#FE5000', gold ? 18 : 8, 150);
+    spawnP(midX(), midY() - 10, '#2fe8ff', gold ? 18 : 8, 150);
+  }
   runOver = true; engineStop();
   if (title) { RESULT = { title, sub: sub || '' }; showResult(); }
 }
@@ -964,15 +1005,69 @@ function draw(a, dtF) {
     ctx.lineTo(sx, VH * 0.60 - Math.sin(wx * 0.0021) * 44 - Math.sin(wx * 0.0073) * 14);
   }
   ctx.lineTo(VW, VH); ctx.fill();
-  // near tree line
-  ctx.fillStyle = 'rgba(16,22,40,0.65)';
-  for (let sx = -20; sx <= VW + 20; sx += 26) {
-    const wx = camX * 0.55 + sx / scale;
-    const seed = Math.sin(Math.floor(wx / 26) * 127.1) * 43758.5;
-    const hgt = 22 + (seed - Math.floor(seed)) * 20;
-    const base = VH * 0.70 - Math.sin(wx * 0.004) * 16;
-    ctx.beginPath();
-    ctx.moveTo(sx, base); ctx.lineTo(sx + 8, base - hgt); ctx.lineTo(sx + 16, base); ctx.closePath(); ctx.fill();
+  // near decor line — themed per track (city / peaks / factory / rocks / trees)
+  const TH = (MODE.def && MODE.def.theme) || {};
+  const decor = TH.decor || 'trees';
+  const seedOf = n => { const s = Math.sin(n * 127.1) * 43758.5; return s - Math.floor(s); };
+  if (decor === 'city') {
+    for (let sx = -30; sx <= VW + 30; sx += 36) {
+      const wx = camX * 0.55 + sx / scale;
+      const cell = Math.floor(wx / 36);
+      const bw = 24 + seedOf(cell * 3 + 1) * 10, bh = 34 + seedOf(cell) * 62;
+      const base = VH * 0.72 - Math.sin(wx * 0.004) * 10;
+      ctx.fillStyle = 'rgba(5,8,18,0.88)';
+      ctx.fillRect(sx, base - bh, bw, bh);
+      const wins = ['#22e6ff', '#ff3fa4', '#ffd23f'];
+      ctx.fillStyle = wins[Math.abs(cell) % 3];
+      ctx.globalAlpha = 0.8;
+      for (let wy = 0; wy < 3; wy++) for (let wn = 0; wn < 2; wn++) {
+        if (seedOf(cell * 17 + wy * 5 + wn) > 0.45) continue;
+        ctx.fillRect(sx + 4 + wn * 10, base - bh + 6 + wy * 12, 4, 5);
+      }
+      ctx.globalAlpha = 1;
+    }
+  } else if (decor === 'peaks') {
+    for (let sx = -40; sx <= VW + 40; sx += 64) {
+      const wx = camX * 0.55 + sx / scale;
+      const cell = Math.floor(wx / 64);
+      const bh = 54 + seedOf(cell) * 56, bw = 46 + seedOf(cell * 7) * 22;
+      const base = VH * 0.72 - Math.sin(wx * 0.004) * 12;
+      ctx.fillStyle = 'rgba(34,40,70,0.6)';
+      ctx.beginPath(); ctx.moveTo(sx, base); ctx.lineTo(sx + bw / 2, base - bh); ctx.lineTo(sx + bw, base); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(240,246,255,0.85)';
+      ctx.beginPath(); ctx.moveTo(sx + bw / 2 - 7, base - bh + 13); ctx.lineTo(sx + bw / 2, base - bh); ctx.lineTo(sx + bw / 2 + 7, base - bh + 13); ctx.lineTo(sx + bw / 2 + 2, base - bh + 9); ctx.lineTo(sx + bw / 2 - 3, base - bh + 11); ctx.closePath(); ctx.fill();
+    }
+  } else if (decor === 'factory') {
+    for (let sx = -30; sx <= VW + 30; sx += 46) {
+      const wx = camX * 0.55 + sx / scale;
+      const cell = Math.floor(wx / 46);
+      const base = VH * 0.72 - Math.sin(wx * 0.004) * 10;
+      ctx.fillStyle = 'rgba(6,8,14,0.85)';
+      ctx.fillRect(sx, base - 20 - seedOf(cell) * 14, 34, 40);
+      ctx.fillRect(sx + 22, base - 46 - seedOf(cell * 3) * 30, 9, 60);
+      ctx.fillStyle = 'rgba(255,140,40,0.85)';
+      for (let wn = 0; wn < 3; wn++) if (seedOf(cell * 13 + wn) > 0.4) ctx.fillRect(sx + 5 + wn * 9, base - 14, 4, 4);
+    }
+  } else if (decor === 'rocks') {
+    ctx.fillStyle = 'rgba(24,18,14,0.5)';
+    for (let sx = -20; sx <= VW + 20; sx += 30) {
+      const wx = camX * 0.55 + sx / scale;
+      const cell = Math.floor(wx / 30);
+      const hgt = 16 + seedOf(cell) * 26;
+      const base = VH * 0.71 - Math.sin(wx * 0.004) * 12;
+      ctx.beginPath();
+      ctx.moveTo(sx, base); ctx.lineTo(sx + 8, base - hgt * 0.6); ctx.lineTo(sx + 15, base - hgt); ctx.lineTo(sx + 24, base - hgt * 0.5); ctx.lineTo(sx + 30, base); ctx.closePath(); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = 'rgba(16,22,40,0.65)';
+    for (let sx = -20; sx <= VW + 20; sx += 26) {
+      const wx = camX * 0.55 + sx / scale;
+      const seed = Math.sin(Math.floor(wx / 26) * 127.1) * 43758.5;
+      const hgt = 22 + (seed - Math.floor(seed)) * 20;
+      const base = VH * 0.70 - Math.sin(wx * 0.004) * 16;
+      ctx.beginPath();
+      ctx.moveTo(sx, base); ctx.lineTo(sx + 8, base - hgt); ctx.lineTo(sx + 16, base); ctx.closePath(); ctx.fill();
+    }
   }
 
   ctx.translate(VW * 0.36 + shx, VH * 0.58 + shy);
@@ -985,8 +1080,8 @@ function draw(a, dtF) {
   ctx.moveTo(x0, staticY(x0));
   for (let x = x0; x <= x1; x += 5) ctx.lineTo(x, staticY(x));
   ctx.lineTo(x1, camY + WORLD_H + 220); ctx.lineTo(x0, camY + WORLD_H + 220); ctx.closePath();
-  ctx.fillStyle = '#5d3d22'; ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.16)'; ctx.lineWidth = 3;
+  ctx.fillStyle = TH.ground || '#5d3d22'; ctx.fill();
+  ctx.strokeStyle = TH.strata || 'rgba(0,0,0,0.16)'; ctx.lineWidth = 3;
   for (const off of [26, 58, 96]) {
     ctx.beginPath();
     for (let x = x0; x <= x1; x += 9) { const y = staticY(x) + off; x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
@@ -994,7 +1089,11 @@ function draw(a, dtF) {
   }
   ctx.beginPath();
   for (let x = x0; x <= x1; x += 5) { const y = staticY(x); x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
-  ctx.strokeStyle = '#69b455'; ctx.lineWidth = 5; ctx.stroke();
+  if (TH.glow) {
+    ctx.save(); ctx.shadowColor = TH.edge; ctx.shadowBlur = 14;
+    ctx.strokeStyle = TH.edge; ctx.lineWidth = 5; ctx.stroke(); ctx.stroke();
+    ctx.restore();
+  } else { ctx.strokeStyle = TH.edge || '#69b455'; ctx.lineWidth = 5; ctx.stroke(); }
 
   // mud patches: dark, wet, surface-hugging
   for (const z of mudZones) {
@@ -1028,7 +1127,7 @@ function draw(a, dtF) {
   // long-jump distance markers
   if (MODE.kind === 'jump') {
     ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-    for (let m = 2; m <= 20; m += 2) {
+    for (let m = 2; m <= 26; m += 2) {
       const x = MODE.def.lipX + m * 25, gy = staticY(x);
       ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - 26); ctx.stroke();
@@ -1163,6 +1262,15 @@ function draw(a, dtF) {
     }
   }
   drawBike(rx, ry, fx, fy);
+  if (MODE.kind === 'jump' && inPlay && !runOver) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const bw = 110, bx = (VW - bw) / 2, by = 30;
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(bx - 2, by - 2, bw + 4, 11);
+    ctx.fillStyle = boostFuel > 0.99 ? '#ffd23f' : '#ff7a1a';
+    if (boostFuel > 0) ctx.fillRect(bx, by, bw * boostFuel, 7);
+    ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+    ctx.fillText(boostFuel > 0 ? 'ROCKET BOOST — HOLD B' : 'BOOST SPENT', VW / 2, by + 19);
+  }
   if (engOsc) engineUpdate(thrSm, mvx);
 }
 function drawTyre(x, y) {
@@ -1504,8 +1612,8 @@ function bindPedal(id, prop) {
   el.addEventListener('pointerleave', off);
   el.addEventListener('pointercancel', off);
 }
-bindPedal('bGas', 'gas'); bindPedal('bBrake', 'brake');
-const KEYMAP = { ArrowUp:'gas', KeyW:'gas', ArrowDown:'brake', KeyS:'brake' };
+bindPedal('bGas', 'gas'); bindPedal('bBrake', 'brake'); bindPedal('bBoost', 'boost');
+const KEYMAP = { ArrowUp:'gas', KeyW:'gas', ArrowDown:'brake', KeyS:'brake', KeyB:'boost', ShiftLeft:'boost', ShiftRight:'boost' };
 addEventListener('keydown', e => {
   if (inPlay && MODE && !paused && (e.code === 'Space' || e.code === 'Enter')) { e.preventDefault(); restartRun(); return; }
   if (e.code === 'KeyR' && inPlay) { restartRun(); return; }
@@ -1547,7 +1655,7 @@ window.__game = {
              seesawAng: seesaws.map(s => +s.ang.toFixed(2)), barrelsX: barrels.map(b => Math.round(b.x)),
              bolts: PROGRESS.bolts, pity: GARAGE.pity, ownedCount: Object.keys(GARAGE.owned).length,
              ghostLen: (GHOSTS[MODE && MODE.trackIdx] || []).length, trail: GARAGE.trail,
-             dailyBest: PROGRESS.daily.best, achCount: Object.keys(PROGRESS.ach).length, finishes: PROGRESS.stats.finishes }; },
+             dailyBest: PROGRESS.daily.best, achCount: Object.keys(PROGRESS.ach).length, finishes: PROGRESS.stats.finishes, boostFuel }; },
   setAnalog: (thr, lean) => { ANALOG.throttle = thr; ANALOG.lean = lean; },
   setInput: (code, on) => { const p = KEYMAP[code]; if (p) input[p] = !!on; },
   wheelTick: d => addWheelTick(d),
